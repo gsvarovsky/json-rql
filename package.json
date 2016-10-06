@@ -1,0 +1,41 @@
+{
+  "name": "json-rql",
+  "version": "0.0.1",
+  "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gsvarovsky/json-rql.git"
+  },
+  "keywords": [
+    "json",
+    "sparql",
+    "rdf",
+    "json-ld",
+    "semantic web"
+  ],
+  "author": "George Svarovsky",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gsvarovsky/json-rql/issues"
+  },
+  "homepage": "https://github.com/gsvarovsky/json-rql#readme",
+  "dependencies": {
+    "async": "^2.0.1",
+    "jsonld": "^0.4.11",
+    "lodash": "^4.16.3",
+    "n3": "^0.8.1",
+    "pass-error": "^0.1.2",
+    "sparqljs": "^1.1.4"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.1.0"
+  }
+}
