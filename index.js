@@ -69,20 +69,22 @@ exports.toSparql = function (jsonRql, cb/*(err, sparql)*/) {
         }
     }
 
-    function correctClause(clause, ast, cb/*(err, ast)*/) {
-        if (isJsonLd(ast[clause])) {
-            // Direct JSON-LD. Expand to singleton array of BGP.
-            return toBgp(ast[clause], pass(function (bgp) {
-                return cb(false, _.set(ast, clause, [bgp]));
-            }, cb));
-        } else if (_.isObject(ast[clause])) {
-            // Array of mixed clauses. Map to BGPs.
-            return _async.map(_.castArray(ast[clause]), toBgp, pass(function (corrected) {
-                return cb(false, _.set(ast, clause, corrected));
-            }, cb));
-        } else {
-            return cb(false, ast);
-        }
+    function clauseCorrect(clause) {
+        return function (ast, cb/*(err, ast)*/) {
+            if (isJsonLd(ast[clause])) {
+                // Direct JSON-LD. Expand to singleton array of BGP.
+                return toBgp(ast[clause], pass(function (bgp) {
+                    return cb(false, _.set(ast, clause, [bgp]));
+                }, cb));
+            } else if (_.isObject(ast[clause])) {
+                // Array of mixed clauses. Map to BGPs.
+                return _async.map(_.castArray(ast[clause]), toBgp, pass(function (corrected) {
+                    return cb(false, _.set(ast, clause, corrected));
+                }, cb));
+            } else {
+                return cb(false, ast);
+            }
+        };
     }
 
     // Apply some useful defaults
@@ -97,11 +99,14 @@ exports.toSparql = function (jsonRql, cb/*(err, sparql)*/) {
     }
 
     // If the clauses contain JSON-LD, expand them to bgp
-    correctClause('where', jsonRql, pass(function (jsonRql) {
+    _async.seq(
+        clauseCorrect('template'),
+        clauseCorrect('where')
+    )(jsonRql, pass(function (jsonRql) {
         _async.map(jsonRql.updates, _async.seq(
-            _async.apply(correctClause, 'delete'),
-            _async.apply(correctClause, 'insert'),
-            _async.apply(correctClause, 'where')), pass(function (updates) {
+            clauseCorrect('delete'),
+            clauseCorrect('insert'),
+            clauseCorrect('where')), pass(function (updates) {
             jsonRql = _.set(jsonRql, 'updates', updates);
             cb(false, sparqlGenerator.stringify(_.omit(jsonRql, '@context')));
         }, cb));
