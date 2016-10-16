@@ -27,9 +27,9 @@
   },
   "homepage": "https://github.com/gsvarovsky/json-rql#readme",
   "dependencies": {
-    "async": "^2.0.1",
+    "async": "^2.1.1",
     "jsonld": "^0.4.11",
-    "lodash": "^4.16.3",
+    "lodash": "^4.16.4",
     "n3": "^0.8.1",
     "pass-error": "^0.1.2",
     "sparqljs": "^1.1.4"
