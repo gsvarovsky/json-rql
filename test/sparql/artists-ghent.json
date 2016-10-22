@@ -1,0 +1,26 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "dbpedia": "http://dbpedia.org/resource/",
+    "dbpedia-owl": "http://dbpedia.org/ontology/"
+  },
+  "@construct": {
+    "@id": "?person",
+    "@type": "dbpedia-owl:Artist",
+    "dbpedia-owl:birthPlace": "?city",
+    "rdfs:label": "?name"
+  },
+  "@where": {
+    "@id": "?person",
+    "@type": "dbpedia-owl:Artist",
+    "dbpedia-owl:birthPlace": {
+      "@id": "?city",
+      "dbpedia-owl:country": {
+        "@id": "?country",
+        "rdfs:label": {"@language": "en", "@value": "Belgium"}
+      },
+      "rdfs:label": ["?cityName", {"@language": "en", "@value": "Ghent"}]
+    },
+    "rdfs:label": "?name"
+  }
+}

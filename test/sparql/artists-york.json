@@ -1,0 +1,12 @@
+{
+  "@context": {"dbpedia-owl": "http://dbpedia.org/ontology/"},
+  "@select": ["?p", "?c"],
+  "@where": {
+    "@id": "?p",
+    "@type": "dbpedia-owl:Artist",
+    "dbpedia-owl:birthPlace": {
+      "@id": "?c",
+      "http://xmlns.com/foaf/0.1/name": {"@language": "en", "@value": "York"}
+    }
+  }
+}

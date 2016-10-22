@@ -40,10 +40,20 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
           cb(false, _jrql.unhideVars(jsonld));
         }, cb));
       } : nothing,
-      '@filter' : _async.apply(_jrql.miniMap, _.map(clausesByType.filter, 'expression'), expressionToJsonLd)
+      '@filter' : _async.apply(_jrql.miniMap, _.map(clausesByType.filter, 'expression'), expressionToJsonLd),
+      '@optional' : !_.isEmpty(clausesByType.optional) ? function (cb) {
+        var subClauses = _.flatten(_.map(clausesByType.optional, 'patterns'));
+        return clausesToJsonLd(subClauses, cb);
+      } : nothing,
+      '@union' : !_.isEmpty(clausesByType.union) ? function (cb) {
+        // Each 'group' is an array of patterns
+        var groups = _(clausesByType.union).map('patterns').flatten().map('patterns').value();
+        return _async.map(groups, clausesToJsonLd, cb);
+      } : nothing
     }, pass(function (result) {
       // If a graph is the only thing we have, flatten it
-      return cb(false, _.isEqual(_.keys(_.pickBy(result)), ['@graph']) ? result['@graph'] : result);
+      result = _.pickBy(result);
+      return cb(false, _.isEqual(_.keys(result), ['@graph']) ? result['@graph'] : result);
     }, cb));
   }
 
@@ -55,9 +65,10 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
     '@select' : parsed.queryType === 'SELECT' && !parsed.distinct ? _async.constant(parsed.variables) : nothing,
     '@distinct' : parsed.queryType === 'SELECT' && parsed.distinct ? _async.constant(parsed.variables) : nothing,
     '@where' : parsed.where ? _async.apply(clausesToJsonLd, parsed.where) : nothing,
-    '@order' : _async.apply(_jrql.miniMap, _.map(parsed.order, 'expression'), expressionToJsonLd),
-    '@limit' : parsed.limit ? _async.constant(parsed.limit) : nothing
+    '@orderBy' : _async.apply(_jrql.miniMap, _.map(parsed.order, 'expression'), expressionToJsonLd),
+    '@limit' : parsed.limit ? _async.constant(parsed.limit) : nothing,
+    '@offset' : parsed.offset ? _async.constant(parsed.offset) : nothing
   }, pass(function (jsonRql) {
-    return cb(false, jsonRql, parsed);
+    return cb(false, _.pickBy(jsonRql), parsed);
   }, cb));
 };

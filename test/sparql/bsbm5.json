@@ -1,0 +1,49 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "bsbm": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/"
+  },
+  "@distinct": ["?product", "?productLabel"],
+  "@limit": 5,
+  "@where": {
+    "@graph": [
+      {
+        "@id": "?product",
+        "rdfs:label": "?productLabel",
+        "bsbm:productFeature": "?prodFeature",
+        "bsbm:productPropertyNumeric1": "?simProperty1",
+        "bsbm:productPropertyNumeric2": "?simProperty2"
+      },
+      {
+        "@id": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product28",
+        "bsbm:productFeature": "?prodFeature",
+        "bsbm:productPropertyNumeric1": "?origProperty1",
+        "bsbm:productPropertyNumeric2": "?origProperty2"
+      }
+    ],
+    "@filter": [
+      {
+        "@neq": [
+          {
+            "@id": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product28"
+          },
+          "?product"
+        ]
+      },
+      {
+        "@and": [
+          {"@lt": ["?simProperty1", {"@plus": ["?origProperty1", 120]}]},
+          {"@gt": ["?simProperty1", {"@minus": ["?origProperty1", 120]}]}
+        ]
+      },
+      {
+        "@and": [
+          {"@lt": ["?simProperty2", {"@plus": ["?origProperty2", 170]}]},
+          {"@gt": ["?simProperty2", {"@minus": ["?origProperty2", 170]}]}
+        ]
+      }
+    ]
+  },
+  "@orderBy": "?productLabel"
+}

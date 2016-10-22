@@ -61,8 +61,16 @@ var _jrql = module.exports = {
 
   operators : {
     '>' : '@gt',
+    '<' : '@lt',
+    '>=' : '@gte',
+    '<=' : '@lte',
     '!' : '@not',
-    'bound' : '@bound'
+    '!=' : '@neq',
+    '&&' : '@and',
+    '+' : '@plus',
+    '-' : '@minus',
+    'bound' : '@bound',
+    'regex' : '@regex'
   },
 
   toJsonLd : function (triples, context, cb/*(err, jsonld)*/) {

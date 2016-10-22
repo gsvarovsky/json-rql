@@ -6,7 +6,6 @@ var _ = require('lodash'),
 
 module.exports = function (jsonRql, cb/*(err, sparql)*/) {
   // Prefixes can be applied with either a prefixes hash, or a JSON-LD context hash, both at top level.
-  // Also include the prefix used for hiding '?x' variables from the JSON-LD processor.
   var context = _.merge(jsonRql['@context'] || {}, jsonRql.prefixes);
 
   /**

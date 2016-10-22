@@ -37,4 +37,4 @@ jspm_packages
 .node_repl_history
 
 # Temporary queries folder
-test/queries/*
+test/sparql/todo
