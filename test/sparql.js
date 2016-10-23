@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     _fs = require('fs'),
     _path = require('path'),
-    _jrql = require('../sparql'),
+    _jrql = require('../index'),
     pass = require('pass-error'),
     expect = require('chai').expect,
     stringify = require('json-stringify-pretty-compact'),

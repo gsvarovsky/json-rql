@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-    _jrql = require('../index'),
+    _util = require('../util'),
     _async = require('async'),
     pass = require('pass-error'),
     sparqlGenerator = new (require('sparqljs').Generator)(),
@@ -11,24 +11,24 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
 
   function toTriples(jsonld, cb/*(err, [triple])*/) {
     jsonld['@context'] = _.merge(jsonld['@context'], context);
-    _jrql.toTriples(_jrql.hideVars(jsonld), pass(function (triples) {
+    _util.toTriples(_util.hideVars(jsonld), pass(function (triples) {
       cb(false, _.map(triples, function (triple) {
-        return _.mapValues(triple, _jrql.unhideVar);
+        return _.mapValues(triple, _util.unhideVar);
       }));
     }, cb));
   }
 
   function toBgp(jsonld, cb/*(err, { type : 'bgp', triples : [] })*/) {
-    return _jrql.ast({ type : 'bgp', triples : [toTriples, jsonld] }, cb);
+    return _util.ast({ type : 'bgp', triples : [toTriples, jsonld] }, cb);
   }
 
   function expressionToSparqlJs(expr, cb/*(err, ast)*/) {
     var operator = _.isObject(expr) && _.size(expr) === 1 && _.first(_.keys(expr));
-    if (operator && _.includes(_.values(_jrql.operators), operator)) {
+    if (operator && _.includes(_.values(_util.operators), operator)) {
       // An operator expression
-      return _jrql.ast({
+      return _util.ast({
         type : 'operation',
-        operator : _.invert(_jrql.operators)[operator],
+        operator : _.invert(_util.operators)[operator],
         args : [_async.map, expr[operator], expressionToSparqlJs]
       }, cb);
     } else {
@@ -53,9 +53,9 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
         switch (key) {
           case '@graph': return toBgp(_.pick(clause, '@graph'), cb);
           case '@filter': return _async.map(_.castArray(clause[key]), function (expr, cb) {
-            return _jrql.ast({ type : 'filter', expression : [expressionToSparqlJs, expr] }, cb);
+            return _util.ast({ type : 'filter', expression : [expressionToSparqlJs, expr] }, cb);
           }, cb);
-          case '@optional': return _jrql.ast({
+          case '@optional': return _util.ast({
             type : 'optional', patterns : [clauseToSparqlJs, clause[key]]
           }, cb);
           // TODO case '@union':
@@ -68,7 +68,7 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
   var type = !_.isEmpty(_.pick(jrql, '@select', '@distinct', '@construct', '@describe')) ? 'query' :
              !_.isEmpty(_.pick(jrql, '@insert', '@delete')) ? 'update' : undefined;
 
-  return type ? _jrql.ast({
+  return type ? _util.ast({
     type : type,
     queryType : jrql['@select'] || jrql['@distinct'] ? 'SELECT' :
       jrql['@construct'] ? 'CONSTRUCT' :
@@ -78,7 +78,7 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
     template : jrql['@construct'] ? [toTriples, jrql['@construct']] : undefined,
     where : jrql['@where'] && type === 'query' ? [clauseToSparqlJs, jrql['@where']] : undefined,
     updates : type === 'update' ? function (cb) {
-      return _jrql.ast({
+      return _util.ast({
         updateType : 'insertdelete',
         insert : jrql['@insert'] ? [clauseToSparqlJs, jrql['@insert']] : [],
         delete : jrql['@delete'] ? [clauseToSparqlJs, jrql['@delete']] : [],
@@ -87,7 +87,7 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
     } : undefined,
     order : jrql['@orderBy'] ? [_async.map, _.castArray(jrql['@orderBy']), function (expr, cb) {
       // TODO direction
-      return _jrql.ast({ expression : [expressionToSparqlJs, expr] }, cb);
+      return _util.ast({ expression : [expressionToSparqlJs, expr] }, cb);
     }] : undefined,
     limit : jrql['@limit'],
     offset : jrql['@offset']
