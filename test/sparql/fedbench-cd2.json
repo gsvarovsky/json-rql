@@ -1,0 +1,11 @@
+{
+  "@select": ["?party", "?page"],
+  "@where": {
+    "@id": "?x",
+    "http://data.nytimes.com/elements/topicPage": "?page",
+    "http://www.w3.org/2002/07/owl#sameAs": {
+      "@id": "http://dbpedia.org/resource/Barack_Obama",
+      "http://dbpedia.org/ontology/party": "?party"
+    }
+  }
+}

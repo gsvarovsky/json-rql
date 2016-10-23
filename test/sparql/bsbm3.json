@@ -1,0 +1,20 @@
+{
+  "@context": {
+    "bsbm-inst": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/",
+    "bsbm": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  },
+  "@select": ["?product", "?label"],
+  "@limit": 10,
+  "@where": {
+    "@graph": {"@id": "?product", "rdfs:label": "?label"},
+    "@filter": {"@not": {"@bound": "?testVar"}},
+    "@optional": {
+      "@id": "?product",
+      "rdfs:label": "?testVar",
+      "bsbm:productFeature": {"@id": "bsbm-inst:ProductFeature1043"}
+    }
+  },
+  "@orderBy": "?label"
+}

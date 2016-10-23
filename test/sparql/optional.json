@@ -1,0 +1,14 @@
+{
+  "@select": ["?p", "?c", "?d"],
+  "@where": {
+    "@graph": {
+      "@id": "?p",
+      "@type": "http://dbpedia.org/ontology/Artist",
+      "http://dbpedia.org/ontology/birthPlace": {
+        "@id": "?c",
+        "http://xmlns.com/foaf/0.1/name": {"@language": "en", "@value": "York"}
+      }
+    },
+    "@optional": {"@id": "?p", "http://dbpedia.org/ontology/deathPlace": "?d"}
+  }
+}

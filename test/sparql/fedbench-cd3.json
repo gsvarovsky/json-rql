@@ -1,0 +1,15 @@
+{
+  "@select": ["?president", "?party", "?page"],
+  "@where": {
+    "@id": "?x",
+    "http://data.nytimes.com/elements/topicPage": "?page",
+    "http://www.w3.org/2002/07/owl#sameAs": {
+      "@id": "?president",
+      "@type": "http://dbpedia.org/ontology/President",
+      "http://dbpedia.org/ontology/nationality": {
+        "@id": "http://dbpedia.org/resource/United_States"
+      },
+      "http://dbpedia.org/ontology/party": "?party"
+    }
+  }
+}
