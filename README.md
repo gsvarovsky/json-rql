@@ -1,13 +1,13 @@
 # json-rql
 _JSON RDF Query Language, a JSON-LD based SPARQL serialisation_
 
-Actually, just a minimal wrapper around [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
-that allows BGP triples to be specified using [JSON-LD](http://json-ld.org/).
+Actually, just a wrapper around [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
+that conforms in syntax and spirit with [JSON-LD](http://json-ld.org/).
 
 ```javascript
 require('json-rql').toSparql({
-  variables : ['?s'],
-  where : { '@id' : '?s', '?p' : '?o' }
+  '@select' : ['?s'],
+  '@where' : { '@id' : '?s', '?p' : '?o' }
 }, function (err, sparql) {
   // sparql => SELECT ?s WHERE { ?s ?p ?o. }
 });
@@ -16,12 +16,34 @@ require('json-rql').toSparql({
 This is intended to be useful in constructing SPARQL expressions in Javascript.
 [Feedback](https://github.com/gsvarovsky/json-rql/issues) and contributions welcome!
 
-The following bells and whistles apply:
-* You can use an `@context` at the top level, instead of `prefixes`
-* `type : 'query'` and `queryType : 'SELECT'` are defaults and can be omitted (as example above)
-* A `where` or `updates` clause can be a single JSON-LD object (as example above) or an array of JSON-LD objects
-  * no need for an additional layer with `type` and `triples`
-  * default `type` for an update is `'insertdelete'`
+The syntax follows as closely as possible to [SPARQL](https://www.w3.org/TR/rdf-sparql-query), using
+JSON-LD-style (camelcase) keywords for SPARQL language keywords. Supported so far are:
+
+`SELECT`, `CONSTRUCT`, `DESCRIBE`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `LIMIT`, `OFFSET`
+
+Rules and gotchas:
+* Use `@distinct` for `SELECT DISTINCT`
+* `@where` is an object which is either just one JSON-LD (nested) object, or a `@graph`, plus any
+other required clauses like `@filter`, `@optional` etc.
+* Operator expressions are an object with one key (the operator), whose value is the operator arguments; e.g. `{ '@regex' : ['?label', 'word'] }`.
+
+The following operators are supported:
+
+| SPARQL operator | json-rql key |
+| --------------- | ------------ |
+| > | `@gt` |
+| < | `@lt` |
+| >= | `@gte` |
+| <= | `@lte` |
+| ! | `@not` |
+| != | `@neq` |
+| && | `@and` |
+| \+ | `@plus` |
+| \- | `@minus` |
+| BOUND | `@bound` |
+| REGEX | `@regex` |
+| IN | `@in` (second argument is an array) |
+
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript
@@ -30,8 +52,8 @@ require('json-rql').toSparql({
     rdf : 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     'dbpedia-owl' : 'http://dbpedia.org/ontology/'
   },
-  variables : ['?p', '?c'],
-  where : {
+  '@select' : ['?p', '?c'],
+  '@where' : {
     '@id' : '?p',
     'rdf:type' : { '@id' : 'dbpedia-owl:Artist' },
     'dbpedia-owl:birthPlace' : {
@@ -42,7 +64,7 @@ require('json-rql').toSparql({
       }
     }
   }
-},function (err, sparql) {
+} ,function (err, sparql) {
   // sparql => SELECT ?p ?c WHERE {
   //   ?c <http://xmlns.com/foaf/0.1/name> "York"@en.
   //   ?p <http://dbpedia.org/ontology/birthPlace> ?c.
@@ -51,7 +73,7 @@ require('json-rql').toSparql({
 });
 ```
 
-See the tests for more examples.
+See the tests (especially test/sparql) for more examples.
 
 ## But wait... You know what's exciting about this?
 Imagine for a second that you had a document index like [elasticsearch](https://www.elastic.co/products/elasticsearch) containing Artists, and their birthplaces as nested documents. Well, then you could trivially translate the JSON example above into an elasticsearch query.
