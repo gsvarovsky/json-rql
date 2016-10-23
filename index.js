@@ -70,7 +70,8 @@ var _jrql = module.exports = {
     '+' : '@plus',
     '-' : '@minus',
     'bound' : '@bound',
-    'regex' : '@regex'
+    'regex' : '@regex',
+    'in' : '@in'
   },
 
   toJsonLd : function (triples, context, cb/*(err, jsonld)*/) {
@@ -129,9 +130,24 @@ var _jrql = module.exports = {
     return array.length === 1 ? array[0] : array;
   },
 
-  miniMap : function (collection, iteratee, cb/*(err, jsonld)*/) {
+  miniMap : function (collection, iteratee, cb/*(err, maybeArray)*/) {
     return !_.isEmpty(collection) ? _async.map(collection, iteratee, pass(function (result) {
       cb(false, _jrql.unArray(result));
     }, cb)) : _async.constant()(cb);
+  },
+
+  ast : function (template, transform, cb/*(err, made)*/) {
+    cb || ((cb = transform) && (transform = _.identity));
+    return _async.auto(_.mapValues(template, function (value) {
+      if (_.isFunction(value)) {
+        return value;
+      } else if (_.isArray(value) && _.isFunction(value[0])) {
+        return _async.apply.apply(this, value);
+      } else {
+        return _async.constant(value);
+      }
+    }), pass(function (made) {
+      return cb(false, transform(_.pickBy(made)));
+    }, cb));
   }
 }

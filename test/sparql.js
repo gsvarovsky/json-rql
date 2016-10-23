@@ -51,7 +51,7 @@ describe('SPARQL handling', function () {
     it('should accept an array select', function (done) {
       _jrql.toSparql({
         '@select' : ['?s'],
-        '@where' : [{ '@id' : '?s', '?p' : { '@id' : '?o' } }]
+        '@where' : { '@id' : '?s', '?p' : { '@id' : '?o' } }
       }, pass(function (sparql) {
         expect(sparql.replace(/\s+/g, ' ')).to.equal('SELECT ?s WHERE { ?s ?p ?o. }');
         done();
@@ -95,7 +95,7 @@ describe('SPARQL handling', function () {
         '@select' : ['?s'],
         '@where' : {
           '@graph' : { '@id' : '?s', '?p' : '?o' },
-          '@filter' : { '@in' : ['?s', ['http://example.org/cartoons#Tom']] }
+          '@filter' : { '@in' : ['?s', [{ '@id' : 'http://example.org/cartoons#Tom' }]] }
         }
       }, pass(function (sparql) {
         expect(sparql.replace(/\s+/g, ' ')).to.equal(

@@ -22,7 +22,7 @@ describe('JSON-RQL', function () {
           }
         }
       }
-    }, pass(function (sparql) {
+    }, pass(function (sparql, sparqljs) {
       var parts = _(sparql.split(/[{}]|\.[\s*\n]/)).map(_.trim).reject(_.isEmpty).value();
       _chai.expect(parts[0]).to.equal('SELECT ?p ?c WHERE');
       _chai.expect(parts.slice(1)).to.contain('?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Artist>');

@@ -7,7 +7,7 @@ var _ = require('lodash'),
     tempPredicate = 'http://json-rql.org/predicate';
 
 module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
-  var parsed = sparqlParser.parse(sparql), nothing = _async.constant();
+  var parsed = sparqlParser.parse(sparql);
 
   function expressionToJsonLd(expr, cb/*(err, jsonld)*/) {
     if (!_.isObject(expr)) {
@@ -25,31 +25,30 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
     }
   }
 
+  function triplesToJsonLd(triples, cb) {
+    return _jrql.toJsonLd(_.map(triples, function (triple) {
+      return _.mapValues(triple, _jrql.hideVar);
+    }), parsed.prefixes, pass(function (jsonld) {
+      jsonld = _.omit(jsonld, '@context');
+      // Optimise away redundant top-level objects
+      jsonld = jsonld['@graph'] ? _jrql.nestGraph(jsonld['@graph']) : jsonld;
+      // Unhide hidden subjects and predicates
+      cb(false, _jrql.unhideVars(jsonld));
+    }, cb));
+  }
+
   function clausesToJsonLd(clauses, cb) {
-    var clausesByType = _.groupBy(clauses, 'type');
-    return _async.auto({
-      '@graph' : !_.isEmpty(clausesByType.bgp) ? function (cb) {
-        var triples = _(clausesByType.bgp).map('triples').flatten().map(function (triple) {
-          return _.mapValues(triple, _jrql.hideVar);
-        }).value();
-        return _jrql.toJsonLd(triples, parsed.prefixes, pass(function (jsonld) {
-          jsonld = _.omit(jsonld, '@context');
-          // Optimise away redundant top-level objects
-          jsonld = jsonld['@graph'] ? _jrql.nestGraph(jsonld['@graph']) : jsonld;
-          // Unhide hidden subjects and predicates
-          cb(false, _jrql.unhideVars(jsonld));
-        }, cb));
-      } : nothing,
-      '@filter' : _async.apply(_jrql.miniMap, _.map(clausesByType.filter, 'expression'), expressionToJsonLd),
-      '@optional' : !_.isEmpty(clausesByType.optional) ? function (cb) {
-        var subClauses = _.flatten(_.map(clausesByType.optional, 'patterns'));
-        return clausesToJsonLd(subClauses, cb);
-      } : nothing,
-      '@union' : !_.isEmpty(clausesByType.union) ? function (cb) {
-        // Each 'group' is an array of patterns
-        var groups = _(clausesByType.union).map('patterns').flatten().map('patterns').value();
-        return _async.map(groups, clausesToJsonLd, cb);
-      } : nothing
+    var byType = _.mapValues(_.groupBy(clauses, 'type'), function (homoClauses) {
+      return !_.isEmpty(homoClauses) && function (key) {
+        return _.flatten(_.map(homoClauses, key));
+      }
+    });
+    return _jrql.ast({
+      '@graph' : byType.bgp ? [triplesToJsonLd, byType.bgp('triples')] : undefined,
+      '@filter' : byType.filter ? [_jrql.miniMap, byType.filter('expression'), expressionToJsonLd] : undefined,
+      '@optional' : byType.optional ? [clausesToJsonLd, byType.optional('patterns')] : undefined,
+      '@union' : byType.union ? // Each 'group' is an array of patterns
+        [_async.map, _.map(byType.union('patterns'), 'patterns'), clausesToJsonLd] : undefined
     }, pass(function (result) {
       // If a graph is the only thing we have, flatten it
       result = _.pickBy(result);
@@ -57,18 +56,16 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
     }, cb));
   }
 
-  _async.auto({
-    '@context' : !_.isEmpty(parsed.prefixes) ? _async.constant(parsed.prefixes) : nothing,
-    '@construct' : parsed.queryType === 'CONSTRUCT' ? _async.apply(clausesToJsonLd, [{
-      type : 'bgp', triples : parsed.template
-    }]) : nothing,
-    '@select' : parsed.queryType === 'SELECT' && !parsed.distinct ? _async.constant(parsed.variables) : nothing,
-    '@distinct' : parsed.queryType === 'SELECT' && parsed.distinct ? _async.constant(parsed.variables) : nothing,
-    '@where' : parsed.where ? _async.apply(clausesToJsonLd, parsed.where) : nothing,
-    '@orderBy' : _async.apply(_jrql.miniMap, _.map(parsed.order, 'expression'), expressionToJsonLd),
-    '@limit' : parsed.limit ? _async.constant(parsed.limit) : nothing,
-    '@offset' : parsed.offset ? _async.constant(parsed.offset) : nothing
+  _jrql.ast({
+    '@context' : !_.isEmpty(parsed.prefixes) ? parsed.prefixes : undefined,
+    '@construct' : parsed.queryType === 'CONSTRUCT' ? [triplesToJsonLd, parsed.template] : undefined,
+    '@select' : parsed.queryType === 'SELECT' && !parsed.distinct ? parsed.variables : undefined,
+    '@distinct' : parsed.queryType === 'SELECT' && parsed.distinct ? parsed.variables : undefined,
+    '@where' : parsed.where ? [clausesToJsonLd, parsed.where] : undefined,
+    '@orderBy' : [_jrql.miniMap, _.map(parsed.order, 'expression'), expressionToJsonLd],
+    '@limit' : parsed.limit,
+    '@offset' : parsed.offset
   }, pass(function (jsonRql) {
-    return cb(false, _.pickBy(jsonRql), parsed);
+    return cb(false, jsonRql, parsed);
   }, cb));
 };
