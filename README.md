@@ -19,43 +19,18 @@ This is intended to be useful in constructing SPARQL expressions in Javascript.
 The syntax follows as closely as possible to [SPARQL](https://www.w3.org/TR/rdf-sparql-query), using
 JSON-LD-style (camelcase) keywords for SPARQL language keywords. Supported so far are:
 
-`SELECT`, `CONSTRUCT`, `DESCRIBE`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `LIMIT`, `OFFSET`
-
-Rules and gotchas:
-* Use `@distinct` for `SELECT DISTINCT`
-* `@where` is an object which is either just one JSON-LD (nested) object, or a `@graph`, plus any
-other required clauses like `@filter`, `@optional` etc.
-* Operator expressions are an object with one key (the operator), whose value is the operator arguments; e.g. `{ '@regex' : ['?label', 'word'] }`.
-
-The following operators are supported:
-
-| SPARQL operator | json-rql key |
-| --------------- | ------------ |
-| > | `@gt` |
-| < | `@lt` |
-| >= | `@gte` |
-| <= | `@lte` |
-| ! | `@not` |
-| != | `@neq` |
-| && | `@and` |
-| \+ | `@plus` |
-| \- | `@minus` |
-| BOUND | `@bound` |
-| REGEX | `@regex` |
-| IN | `@in` (second argument is an array) |
-
+`SELECT`, `CONSTRUCT`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `LIMIT`, `OFFSET`
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript
 require('json-rql').toSparql({
   '@context' : {
-    rdf : 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
     'dbpedia-owl' : 'http://dbpedia.org/ontology/'
   },
   '@select' : ['?p', '?c'],
   '@where' : {
     '@id' : '?p',
-    'rdf:type' : { '@id' : 'dbpedia-owl:Artist' },
+    '@type' : 'dbpedia-owl:Artist',
     'dbpedia-owl:birthPlace' : {
       '@id' : '?c',
       'http://xmlns.com/foaf/0.1/name' : {
@@ -72,10 +47,37 @@ require('json-rql').toSparql({
   // }
 });
 ```
+Notice that the `@where` clause is _nested_. This is the advantage of JSON-LD, coming to SPARQL:
+it's more natural to read and author related clauses when they can be in-lined, rather than having to
+visually grep for triples related by variable names in a list.
 
-See the tests (especially test/sparql) for more examples.
+See the tests (especially the JSON files in test/sparql) for more examples.
 
-## But wait... You know what's exciting about this?
+## Rules and Gotchas
+* Use `@distinct` for `SELECT DISTINCT`
+* `@where` is an object which is either just one JSON-LD (nested) object, or a `@graph`, plus any
+other required clauses like `@filter`, `@optional` etc.
+
+## Operators
+Operator expressions are an object with one key (the operator), whose value is the operator arguments; e.g. `{ '@regex' : ['?label', 'word'] }`.
+
+The following operators are supported:
+* ">" as `@gt`
+* "<" as `@lt`
+* ">=" as `@gte`
+* "<=" as `@lte`
+* "!" as `@not`
+* "!=" as `@neq`
+* "&&" as `@and`
+* "\+" as `@plus`
+* "\-" as `@minus`
+* "BOUND" as `@bound`
+* "REGEX" as `@regex`
+* "IN" as `@in` (second argument is an array)
+
+## But also...
+You know what's exciting about this?
+
 Imagine for a second that you had a document index like [elasticsearch](https://www.elastic.co/products/elasticsearch) containing Artists, and their birthplaces as nested documents. Well, then you could trivially translate the JSON example above into an elasticsearch query.
 
 Let's say further that you have several such indexes for different document shapes, as well as a Triplestore; with all of this fronted by an API accepting **json-rql**. Your API gateway can then pattern-match the requests against the document structure of your indexes, and quickly choose the optimal one, falling back on the Triplestore if no matching one exists.

@@ -2,9 +2,11 @@ var _ = require('lodash'),
     _fs = require('fs'),
     _path = require('path'),
     _jrql = require('../index'),
+    hash = require('object-hash'),
     pass = require('pass-error'),
     expect = require('chai').expect,
     stringify = require('json-stringify-pretty-compact'),
+    sparqlParser = new (require('sparqljs').Parser)(),
     sparqlFolder = '../node_modules/sparqljs/queries';
 
 describe('SPARQL handling', function () {
@@ -123,12 +125,36 @@ describe('SPARQL handling', function () {
 
       if (_fs.existsSync(jrqlFile)) {
         var expected = JSON.parse(_fs.readFileSync(jrqlFile, 'utf-8'));
-        it('should convert ' + testcase, function (done) {
+
+        it('should convert SPARQL to json-rql for ' + testcase, function (done) {
           _jrql.toJsonRql(sparql, pass(function (jrql) {
             expect(jrql).to.deep.equal(expected);
             done();
           }, done));
         });
+
+        function comparableAst(parsed) {
+          return _(parsed).omit('prefixes').cloneDeepWith(function (v, k) {
+            // Convert arrays of triples to objects keyed by triple hash
+            // to overcome unwanted ordered array comparisons
+            if (k === 'triples' || k === 'template') {
+              return _.transform(v, function (tripleSet, triple) {
+                return _.set(tripleSet, hash(triple), triple);
+              });
+            }
+          });
+        }
+
+        it('should convert json-rql to SPARQL for ' + testcase, function (done) {
+          // Use sparqljs as a common currency for SPARQL
+          var expectedAst = comparableAst(sparqlParser.parse(sparql));
+          _jrql.toSparql(expected, pass(function (genSparql) {
+            var actualAst = comparableAst(sparqlParser.parse(genSparql));
+            expect(actualAst).to.deep.equal(expectedAst);
+            done();
+          }, done));
+        });
+
       } else {
         // Output the missing test case to the todo folder
         _jrql.toJsonRql(sparql, function (err, jrql, parsed) {

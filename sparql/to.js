@@ -29,7 +29,7 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
       return _util.ast({
         type : 'operation',
         operator : _.invert(_util.operators)[operator],
-        args : [_async.map, expr[operator], expressionToSparqlJs]
+        args : [_async.map, _.castArray(expr[operator]), expressionToSparqlJs]
       }, cb);
     } else {
       // JSON-LD value e.g. literal, [literal], { @id : x } or { @value : x, @language : y }
@@ -58,7 +58,15 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
           case '@optional': return _util.ast({
             type : 'optional', patterns : [clauseToSparqlJs, clause[key]]
           }, cb);
-          // TODO case '@union':
+          case '@union': return _util.ast({
+            type : 'union',
+            patterns : [_async.map, clause[key], function (group, cb) {
+              return _util.ast({
+                type : 'group',
+                patterns : [clauseToSparqlJs, group]
+              }, cb);
+            }]
+          }, cb);
           default: return cb('Unsupported clause key: ' + key + ' in ' + JSON.stringify(clause));
         }
       }, cb);

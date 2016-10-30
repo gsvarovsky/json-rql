@@ -7,13 +7,12 @@ describe('JSON-RQL', function () {
   it('should work with the example from SPARQL.js', function (done) {
     _jsonRql.toSparql({
       '@context' : {
-        rdf : 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
         'dbpedia-owl' : 'http://dbpedia.org/ontology/'
       },
       '@select' : ['?p', '?c'],
       '@where' : {
         '@id' : '?p',
-        'rdf:type' : { '@id' : 'dbpedia-owl:Artist' },
+        '@type' : 'dbpedia-owl:Artist',
         'dbpedia-owl:birthPlace' : {
           '@id' : '?c',
           'http://xmlns.com/foaf/0.1/name' : {
