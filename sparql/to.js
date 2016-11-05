@@ -61,10 +61,7 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
           case '@union': return _util.ast({
             type : 'union',
             patterns : [_async.map, clause[key], function (group, cb) {
-              return _util.ast({
-                type : 'group',
-                patterns : [clauseToSparqlJs, group]
-              }, cb);
+              return _util.ast({ type : 'group', patterns : [clauseToSparqlJs, group] }, cb);
             }]
           }, cb);
           default: return cb('Unsupported clause key: ' + key + ' in ' + JSON.stringify(clause));
