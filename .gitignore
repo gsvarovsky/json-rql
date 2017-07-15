@@ -38,3 +38,5 @@ jspm_packages
 
 # Temporary queries folder
 test/sparql/todo
+.idea/
+json-rql.iml

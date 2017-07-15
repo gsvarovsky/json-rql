@@ -1,6 +1,6 @@
 {
   "name": "json-rql",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
   "main": "index.js",
   "directories": {
@@ -30,12 +30,12 @@
     "async": "^2.1.1",
     "jsonld": "^0.4.11",
     "lodash": "^4.16.4",
-    "n3": "^0.8.1",
+    "n3": "^0.11.0",
     "pass-error": "^0.1.2",
     "sparqljs": "^1.1.4"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.1.0",
     "json-stringify-pretty-compact": "^1.0.2",
     "mocha": "^3.1.0",
     "object-hash": "^1.1.4"
