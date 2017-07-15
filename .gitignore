@@ -37,6 +37,5 @@ jspm_packages
 .node_repl_history
 
 # Temporary queries folder
-test/sparql/todo
 .idea/
 json-rql.iml
