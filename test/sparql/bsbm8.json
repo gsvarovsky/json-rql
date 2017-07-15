@@ -1,0 +1,62 @@
+{
+  "@context": {
+    "bsbm": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "rev": "http://purl.org/stuff/rev#",
+    "foaf": "http://xmlns.com/foaf/0.1/"
+  },
+  "@select": [
+    "?title",
+    "?text",
+    "?reviewDate",
+    "?reviewer",
+    "?reviewerName",
+    "?rating1",
+    "?rating2",
+    "?rating3",
+    "?rating4"
+  ],
+  "@limit": 20,
+  "@where": {
+    "@graph": {
+      "@id": "?review",
+      "dc:title": "?title",
+      "rev:reviewer": {
+        "@id": "?reviewer",
+        "foaf:name": "?reviewerName"
+      },
+      "rev:text": "?text",
+      "bsbm:reviewDate": "?reviewDate",
+      "bsbm:reviewFor": {
+        "@id": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer16/Product783"
+      }
+    },
+    "@filter": {
+      "@langmatches": [
+        {
+          "@lang": "?text"
+        },
+        "EN"
+      ]
+    },
+    "@optional": [
+      {
+        "@id": "?review",
+        "bsbm:rating1": "?rating1"
+      },
+      {
+        "@id": "?review",
+        "bsbm:rating2": "?rating2"
+      },
+      {
+        "@id": "?review",
+        "bsbm:rating3": "?rating3"
+      },
+      {
+        "@id": "?review",
+        "bsbm:rating4": "?rating4"
+      }
+    ]
+  },
+  "@orderBy": {"@desc": "?reviewDate"}
+}
