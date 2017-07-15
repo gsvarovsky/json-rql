@@ -83,9 +83,9 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
     return type ? _util.ast({
         type: type,
         queryType: jrql['@select'] || jrql['@distinct'] ? 'SELECT' :
-            jrql['@construct'] ? 'CONSTRUCT' :
-                jrql['@describe'] ? 'DESCRIBE' : undefined,
-        variables: jrql['@select'] || jrql['@distinct'],
+            jrql['@construct'] ? 'CONSTRUCT' : jrql['@describe'] ? 'DESCRIBE' : undefined,
+        variables: jrql['@select'] || jrql['@distinct'] || jrql['@describe'] ?
+            _.castArray(jrql['@select'] || jrql['@distinct'] || jrql['@describe']) : undefined,
         distinct: !!jrql['@distinct'] || undefined,
         template: jrql['@construct'] ? [toTriples, jrql['@construct']] : undefined,
         where: jrql['@where'] && type === 'query' ? [clauseToSparqlJs, jrql['@where']] : undefined,

@@ -1,5 +1,5 @@
 {
-  "@select": ["?p"],
+  "@select": "?p",
   "@where": {
     "@id": "?p",
     "http://xmlns.com/foaf/0.1/name": {

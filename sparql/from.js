@@ -62,8 +62,9 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
     _util.ast({
         '@context': !_.isEmpty(parsed.prefixes) ? parsed.prefixes : undefined,
         '@construct': parsed.queryType === 'CONSTRUCT' ? [triplesToJsonLd, parsed.template] : undefined,
-        '@select': parsed.queryType === 'SELECT' && !parsed.distinct ? parsed.variables : undefined,
-        '@distinct': parsed.queryType === 'SELECT' && parsed.distinct ? parsed.variables : undefined,
+        '@select': parsed.queryType === 'SELECT' && !parsed.distinct ? _util.unArray(parsed.variables) : undefined,
+        '@describe': parsed.queryType === 'DESCRIBE' && _util.unArray(parsed.variables),
+        '@distinct': parsed.queryType === 'SELECT' && parsed.distinct ? _util.unArray(parsed.variables) : undefined,
         '@where': parsed.where ? [clausesToJsonLd, parsed.where] : undefined,
         '@orderBy': [_util.miniMap, _.map(parsed.order, function (order) {
             return order.descending ? {

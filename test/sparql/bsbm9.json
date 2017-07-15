@@ -1,0 +1,8 @@
+{
+  "@context": {"rev": "http://purl.org/stuff/rev#"},
+  "@describe": "?x",
+  "@where": {
+    "@id": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromRatingSite1/Review7958",
+    "rev:reviewer": "?x"
+  }
+}
