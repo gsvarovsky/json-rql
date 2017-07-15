@@ -4,22 +4,33 @@ var _ = require('lodash'),
     pass = require('pass-error'),
     sparqlParser = new (require('sparqljs').Parser)(),
     tempSubject = 'http://json-rql.org/subject',
-    tempPredicate = 'http://json-rql.org/predicate';
+    tempPredicate = 'http://json-rql.org/predicate',
+    tempObject = 'http://json-rql.org/object';
 
-module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
+module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     var parsed = sparqlParser.parse(sparql);
 
+    function operationToJsonLd(operator, args, cb) {
+        return _util.miniMap(args, expressionToJsonLd, pass(function (jsonldArgs) {
+            return cb(false, _.set({}, operator, jsonldArgs));
+        }, cb));
+    }
+
     function expressionToJsonLd(expr, cb/*(err, jsonld)*/) {
+        var operator, tempTriple;
         if (!_.isObject(expr)) {
-            var tempTriple = {subject: tempSubject, predicate: tempPredicate, object: _util.hideVar(expr)};
+            tempTriple = {subject: tempSubject, predicate: tempPredicate, object: _util.hideVar(expr)};
             return _util.toJsonLd([tempTriple], parsed.prefixes, pass(function (jsonld) {
                 return cb(false, _util.unhideVars(jsonld[tempPredicate]));
             }, cb));
         } else if (expr.type === 'operation') {
-            var op = _util.operators[expr.operator];
-            return op ? _util.miniMap(expr.args, expressionToJsonLd, pass(function (jsonlds) {
-                return cb(false, _.set({}, op, jsonlds));
-            }, cb)) : cb('Unsupported operator: ' + expr.operator);
+            operator = _util.operators[expr.operator];
+            return operator ? operationToJsonLd(operator, expr.args, cb) : cb('Unsupported operator: ' + expr.operator);
+        } else if (expr.type === 'functionCall') {
+            tempTriple = {subject: tempSubject, predicate: expr['function'], object: tempObject};
+            _util.toJsonLd([tempTriple], parsed.prefixes, pass(function (jsonld) {
+                return operationToJsonLd(_.findKey(jsonld, {'@id': tempObject}), expr.args, cb);
+            }, cb));
         } else {
             return cb('Unsupported expression: ' + expr.type);
         }
@@ -40,9 +51,9 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
     function clausesToJsonLd(clauses, cb) {
         var byType = _.mapValues(_.groupBy(clauses, 'type'), function (homoClauses) {
             return !_.isEmpty(homoClauses) && function (key, bumpy) {
-                var clauses = _.map(homoClauses, key);
-                return bumpy ? clauses : _.flatten(clauses);
-            }
+                    var clauses = _.map(homoClauses, key);
+                    return bumpy ? clauses : _.flatten(clauses);
+                }
         });
         return _util.ast({
             '@graph': byType.bgp ? [triplesToJsonLd, byType.bgp('triples')] : undefined,
@@ -63,7 +74,7 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
         '@context': !_.isEmpty(parsed.prefixes) ? parsed.prefixes : undefined,
         '@construct': parsed.queryType === 'CONSTRUCT' ? [triplesToJsonLd, parsed.template] : undefined,
         '@select': parsed.queryType === 'SELECT' && !parsed.distinct ? _util.unArray(parsed.variables) : undefined,
-        '@describe': parsed.queryType === 'DESCRIBE' && _util.unArray(parsed.variables),
+        '@describe': parsed.queryType === 'DESCRIBE' ? _util.unArray(parsed.variables) : undefined,
         '@distinct': parsed.queryType === 'SELECT' && parsed.distinct ? _util.unArray(parsed.variables) : undefined,
         '@where': parsed.where ? [clausesToJsonLd, parsed.where] : undefined,
         '@orderBy': [_util.miniMap, _.map(parsed.order, function (order) {
@@ -75,7 +86,7 @@ module.exports = function (sparql, cb/*(err, jsonRql, parsed)*/) {
         }), expressionToJsonLd],
         '@limit': parsed.limit,
         '@offset': parsed.offset
-    }, pass(function (jsonRql) {
-        return cb(false, jsonRql, parsed);
-    }, cb));
+    }, function (err, jsonRql) {
+        return cb(err, jsonRql, parsed);
+    });
 };

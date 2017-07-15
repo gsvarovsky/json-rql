@@ -1,0 +1,55 @@
+{
+  "@context": {
+    "bsbm": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dc": "http://purl.org/dc/elements/1.1/"
+  },
+  "@distinct": [
+    "?offer",
+    "?price"
+  ],
+  "@limit": 10,
+  "@where": {
+    "@graph": [
+      {
+        "@id": "?offer",
+        "dc:publisher": "?vendor",
+        "bsbm:deliveryDays": "?deliveryDays",
+        "bsbm:price": "?price",
+        "bsbm:product": {
+          "@id": "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer5/Product186"
+        },
+        "bsbm:validTo": "?date",
+        "bsbm:vendor": "?vendor"
+      },
+      {
+        "@id": "?vendor",
+        "bsbm:country": {
+          "@id": "http://downlode.org/rdf/iso-3166/countries#US"
+        }
+      }
+    ],
+    "@filter": [
+      {
+        "@lte": [
+          "?deliveryDays",
+          3
+        ]
+      },
+      {
+        "@gt": [
+          "?date",
+          {
+            "@type": "xsd:dateTime",
+            "@value": "2008-06-20T00:00:00"
+          }
+        ]
+      }
+    ]
+  },
+  "@orderBy": {
+    "xsd:double": {
+      "@str": "?price"
+    }
+  }
+}

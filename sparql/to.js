@@ -3,9 +3,10 @@ var _ = require('lodash'),
     _async = require('async'),
     pass = require('pass-error'),
     sparqlGenerator = new (require('sparqljs').Generator)(),
-    tempPredicate = 'http://json-rql.org/predicate';
+    tempPredicate = 'http://json-rql.org/predicate',
+    tempObject = 'http://json-rql.org/object';
 
-module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
+module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     // Prefixes can be applied with either a prefixes hash, or a JSON-LD context hash, both at top level.
     var context = jrql['@context'] || {};
 
@@ -18,30 +19,46 @@ module.exports = function (jrql, cb/*(err, sparql, parsed)*/) {
         }, cb));
     }
 
+    function toTriple(key, value, cb/*(err, triple)*/) {
+        var jsonld = {'@context': context};
+        jsonld[key] = value;
+        return toTriples(jsonld, pass(function (triples) {
+            return triples.length === 1 ? cb(false, triples[0]) : cb('Unexpected parse state');
+        }, cb));
+    }
+
     function toBgp(jsonld, cb/*(err, { type : 'bgp', triples : [] })*/) {
         return _util.ast({type: 'bgp', triples: [toTriples, jsonld]}, cb);
     }
 
     function expressionToSparqlJs(expr, cb/*(err, ast)*/) {
-        var operator = _.isObject(expr) && _.size(expr) === 1 && _.first(_.keys(expr));
-        if (operator && _.includes(_.values(_util.operators), operator)) {
-            // An operator expression
-            return _util.ast({
-                type: 'operation',
-                operator: _.invert(_util.operators)[operator],
-                args: [_async.map, _.castArray(expr[operator]), expressionToSparqlJs]
-            }, cb);
-        } else {
-            // JSON-LD value e.g. literal, [literal], { @id : x } or { @value : x, @language : y }
-            var jsonld = {'@context': context};
-            jsonld[tempPredicate] = expr;
-            return toTriples(jsonld, pass(function (triples) {
-                return triples.length === 1 ?
-                    // Counteract JSON-LD unarraying a unary array
-                    cb(false, _.isArray(expr) ? _.castArray(triples[0].object) : triples[0].object) :
-                    cb('Cannot parse ' + expr);
-            }, cb));
+        var operator = _.isPlainObject(expr) && _.size(expr) === 1 && _.first(_.keys(expr));
+        if (operator) {
+            var argTemplate = [_async.map, _.castArray(expr[operator]), expressionToSparqlJs];
+            if (_.includes(_.values(_util.operators), operator)) {
+                // An operator expression
+                return _util.ast({
+                    type: 'operation',
+                    operator: _.invert(_util.operators)[operator],
+                    args: argTemplate
+                }, cb);
+            } else if (!operator.startsWith('@')) {
+                // A function expression
+                return toTriple(operator, tempObject, pass(function (triple) {
+                    return _util.ast({
+                        type: 'functionCall',
+                        function : triple.predicate,
+                        args : argTemplate,
+                        distinct : false // TODO what is this anyway
+                    }, cb);
+                }, cb));
+            }
         }
+        // JSON-LD value e.g. literal, [literal], { @id : x } or { @value : x, @language : y }
+        return toTriple(tempPredicate, expr, pass(function (triple) {
+            // Counteract JSON-LD unarraying a unary array
+            return cb(false, _.isArray(expr) ? _.castArray(triple.object) : triple.object);
+        }, cb));
     }
 
     function clauseToSparqlJs(clause, cb/*(err, ast)*/) {

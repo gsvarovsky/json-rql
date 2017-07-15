@@ -142,7 +142,6 @@ describe('SPARQL handling', function () {
                         done();
                     }, done));
                 });
-
             } else {
                 // Output the missing test case to the todo folder
                 _jrql.toJsonRql(sparql, function (err, jrql, parsed) {
