@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/gsvarovsky/json-rql.svg?branch=master)](https://travis-ci.org/gsvarovsky/json-rql)
+[![GitHub stars](https://img.shields.io/github/stars/gsvarovsky/json-rql.svg)](https://github.com/gsvarovsky/json-rql/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/gsvarovsky/json-rql.svg)](https://github.com/gsvarovsky/json-rql/issues)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/gsvarovsky/json-rql/master/LICENSE)
 # json-rql
 _JSON RDF Query Language, a JSON-LD based SPARQL serialisation_
 
