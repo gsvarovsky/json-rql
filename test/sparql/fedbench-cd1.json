@@ -1,0 +1,18 @@
+{
+  "@select": ["?predicate", "?object"],
+  "@where": {
+    "@union": [
+      {
+        "@id": "http://dbpedia.org/resource/Barack_Obama",
+        "?predicate": "?object"
+      },
+      {
+        "@id": "?subject",
+        "?predicate": "?object",
+        "http://www.w3.org/2002/07/owl#sameAs": {
+          "@id": "http://dbpedia.org/resource/Barack_Obama"
+        }
+      }
+    ]
+  }
+}

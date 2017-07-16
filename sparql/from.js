@@ -61,8 +61,11 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                 [_util.miniMap, byType.filter('expression'), expressionToJsonLd] : undefined,
             '@optional': byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
                 [_util.miniMap, byType.optional('patterns', true), clausesToJsonLd] : undefined,
-            '@union': byType.union ? // Each 'group' is an array of patterns
-                [_async.map, _.map(byType.union('patterns'), 'patterns'), clausesToJsonLd] : undefined
+            '@union': byType.union ?
+                [_async.map, _.map(byType.union('patterns'), function (clause) {
+                    // Each 'group' is an array of patterns
+                    return clause.type === 'group' ? clause.patterns : [clause];
+                }), clausesToJsonLd] : undefined
         }, pass(function (result) {
             // If a graph is the only thing we have, flatten it
             result = _.pickBy(result);
