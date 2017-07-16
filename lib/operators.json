@@ -1,0 +1,20 @@
+{
+  ">": "@gt",
+  "<": "@lt",
+  ">=": "@gte",
+  "<=": "@lte",
+  "!": "@not",
+  "!=": "@neq",
+  "&&": "@and",
+  "+": "@plus",
+  "-": "@minus",
+  "bound": "@bound",
+  "regex": "@regex",
+  "in": "@in",
+  "notin": "@notin",
+  "str": "@str",
+  "lang" : "@lang",
+  "langmatches" : "@langmatches",
+  "descending" : "@desc",
+  "ascending" : "@asc"
+}

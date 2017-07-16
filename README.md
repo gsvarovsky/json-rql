@@ -65,19 +65,7 @@ other required clauses like `@filter`, `@optional` etc.
 ## Operators
 Operator expressions are an object with one key (the operator), whose value is the operator arguments; e.g. `{ '@regex' : ['?label', 'word'] }`.
 
-The following operators are supported:
-* ">" as `@gt`
-* "<" as `@lt`
-* ">=" as `@gte`
-* "<=" as `@lte`
-* "!" as `@not`
-* "!=" as `@neq`
-* "&&" as `@and`
-* "\+" as `@plus`
-* "\-" as `@minus`
-* "BOUND" as `@bound`
-* "REGEX" as `@regex`
-* "IN" as `@in` (second argument is an array)
+The supported operators can be found in [operators.json](lib/operators.json).
 
 ## But also...
 You know what's exciting about this?
