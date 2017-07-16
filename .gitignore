@@ -39,4 +39,4 @@ jspm_packages
 # Temporary queries folder
 .idea/
 json-rql.iml
-test/sparql/queries
+test/data/sparql
