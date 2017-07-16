@@ -17,22 +17,24 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     }
 
     function expressionToJsonLd(expr, cb/*(err, jsonld)*/) {
-        var operator, tempTriple;
-        if (!_.isObject(expr)) {
-            tempTriple = {subject: tempSubject, predicate: tempPredicate, object: _util.hideVar(expr)};
-            return _util.toJsonLd([tempTriple], parsed.prefixes, pass(function (jsonld) {
+        var operator, tempTriples;
+        if (_.isArray(expr) || !_.isObject(expr)) {
+            tempTriples = _.map(_.castArray(expr), function (e) {
+                return { subject : tempSubject, predicate : tempPredicate, object : _util.hideVar(e) }
+            });
+            return _util.toJsonLd(tempTriples, parsed.prefixes, pass(function (jsonld) {
                 return cb(false, _util.unhideVars(jsonld[tempPredicate]));
             }, cb));
         } else if (expr.type === 'operation') {
             operator = _util.operators[expr.operator];
             return operator ? operationToJsonLd(operator, expr.args, cb) : cb('Unsupported operator: ' + expr.operator);
         } else if (expr.type === 'functionCall') {
-            tempTriple = {subject: tempSubject, predicate: expr['function'], object: tempObject};
-            _util.toJsonLd([tempTriple], parsed.prefixes, pass(function (jsonld) {
-                return operationToJsonLd(_.findKey(jsonld, {'@id': tempObject}), expr.args, cb);
+            tempTriples = [{ subject : tempSubject, predicate : expr['function'], object : tempObject }];
+            _util.toJsonLd(tempTriples, parsed.prefixes, pass(function (jsonld) {
+                return operationToJsonLd(_.findKey(jsonld, { '@id' : tempObject }), expr.args, cb);
             }, cb));
         } else {
-            return cb('Unsupported expression: ' + expr.type);
+            return cb('Unsupported expression: ' + expr.type || expr);
         }
     }
 
@@ -56,12 +58,12 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                 }
         });
         return _util.ast({
-            '@graph': byType.bgp ? [triplesToJsonLd, byType.bgp('triples')] : undefined,
-            '@filter': byType.filter ?
+            '@graph' : byType.bgp ? [triplesToJsonLd, byType.bgp('triples')] : undefined,
+            '@filter' : byType.filter ?
                 [_util.miniMap, byType.filter('expression'), expressionToJsonLd] : undefined,
-            '@optional': byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
+            '@optional' : byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
                 [_util.miniMap, byType.optional('patterns', true), clausesToJsonLd] : undefined,
-            '@union': byType.union ?
+            '@union' : byType.union ?
                 [_async.map, _.map(byType.union('patterns'), function (clause) {
                     // Each 'group' is an array of patterns
                     return clause.type === 'group' ? clause.patterns : [clause];
@@ -74,21 +76,21 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     }
 
     _util.ast({
-        '@context': !_.isEmpty(parsed.prefixes) ? parsed.prefixes : undefined,
-        '@construct': parsed.queryType === 'CONSTRUCT' ? [triplesToJsonLd, parsed.template] : undefined,
-        '@select': parsed.queryType === 'SELECT' && !parsed.distinct ? _util.unArray(parsed.variables) : undefined,
-        '@describe': parsed.queryType === 'DESCRIBE' ? _util.unArray(parsed.variables) : undefined,
-        '@distinct': parsed.queryType === 'SELECT' && parsed.distinct ? _util.unArray(parsed.variables) : undefined,
-        '@where': parsed.where ? [clausesToJsonLd, parsed.where] : undefined,
-        '@orderBy': [_util.miniMap, _.map(parsed.order, function (order) {
+        '@context' : !_.isEmpty(parsed.prefixes) ? parsed.prefixes : undefined,
+        '@construct' : parsed.queryType === 'CONSTRUCT' ? [triplesToJsonLd, parsed.template] : undefined,
+        '@select' : parsed.queryType === 'SELECT' && !parsed.distinct ? _util.unArray(parsed.variables) : undefined,
+        '@describe' : parsed.queryType === 'DESCRIBE' ? _util.unArray(parsed.variables) : undefined,
+        '@distinct' : parsed.queryType === 'SELECT' && parsed.distinct ? _util.unArray(parsed.variables) : undefined,
+        '@where' : parsed.where ? [clausesToJsonLd, parsed.where] : undefined,
+        '@orderBy' : [_util.miniMap, _.map(parsed.order, function (order) {
             return order.descending ? {
-                type: 'operation',
-                operator: 'descending',
-                args: [order.expression]
+                type : 'operation',
+                operator : 'descending',
+                args : [order.expression]
             } : order.expression;
         }), expressionToJsonLd],
-        '@limit': parsed.limit,
-        '@offset': parsed.offset
+        '@limit' : parsed.limit,
+        '@offset' : parsed.offset
     }, function (err, jsonRql) {
         return cb(err, jsonRql, parsed);
     });
