@@ -1,14 +1,11 @@
-var _fs = require('fs'),
-    _path = require('path'),
+var _ = require('lodash'),
     _jrql = require('../index'),
     hash = require('object-hash'),
     pass = require('pass-error'),
     expect = require('chai').expect,
     toComparableAst = require('./sparqljsUtil').toComparableAst,
-    stringify = require('json-stringify-pretty-compact'),
     sparqlParser = new (require('sparqljs').Parser)(),
-    sparqlFolder = _path.join(__dirname, '../node_modules/sparqljs/queries'),
-    dataFolder = _path.join(__dirname, 'data');
+    forEachSparqlExample = require('./todo').forEachSparqlExample;
 
 describe('SPARQL handling', function () {
     describe('conversion to SPARQL', function () {
@@ -122,65 +119,27 @@ describe('SPARQL handling', function () {
     });
 
     describe('SPARQL.js examples', function () {
-        _fs.readdirSync(sparqlFolder).forEach(function (name) {
-            var sparql = _fs.readFileSync(_path.join(sparqlFolder, name), 'utf-8'),
-                testCase = name.slice(0, name.lastIndexOf('.')),
-                testFilename = testCase + '.json',
-                testFile = _path.join(dataFolder, testFilename);
+        forEachSparqlExample(function test(name, sparql, jrql) {
+            var unmutated = _.cloneDeep(jrql);
 
-            function rmFrom(folder) {
-                try {
-                    _fs.unlinkSync(_path.join(dataFolder, folder, testFilename));
-                } catch (e) {
-                }
-            }
+            it('should convert SPARQL to json-rql for ' + name, function (done) {
+                _jrql.toJsonRql(sparql, pass(function (jrql) {
+                    expect(jrql).to.deep.equal(jrql);
+                    done();
+                }, done));
+            });
 
-            rmFrom('erroring');
-            rmFrom('noerrors');
-
-            if (_fs.existsSync(testFile)) {
-                var expected = JSON.parse(_fs.readFileSync(testFile, 'utf-8'));
-
-                it('should convert SPARQL to json-rql for ' + testCase, function (done) {
-                    _jrql.toJsonRql(sparql, pass(function (jrql) {
-                        expect(jrql).to.deep.equal(expected);
-                        done();
-                    }, done));
-                });
-
-                it('should convert json-rql to SPARQL for ' + testCase, function (done) {
-                    // Use sparqljs as a common currency for SPARQL
-                    var expectedAst = toComparableAst(sparqlParser.parse(sparql));
-                    _jrql.toSparql(expected, pass(function (genSparql) {
-                        var actualAst = toComparableAst(sparqlParser.parse(genSparql));
-                        expect(actualAst).to.deep.equal(expectedAst);
-                        done();
-                    }, done));
-                });
-            } else {
-                // Output the missing test cases to the errors folder
-                _jrql.toJsonRql(sparql, function (err, jrql, parsed) {
-                    function outputTo(folder) {
-                        jrql.__sparql = sparql.split('\n');
-                        jrql.__parsed = parsed;
-                        _fs.writeFileSync(_path.join(dataFolder, folder, testFilename), stringify(jrql), 'utf-8');
-                    }
-                    if (err) {
-                        jrql.__fromErr = err;
-                        outputTo('erroring');
-                    } else {
-                        _jrql.toSparql(jrql, function (err, revSparql) {
-                            if (err) {
-                                jrql.__toErr = err;
-                                outputTo('erroring');
-                            } else {
-                                jrql.__revSparql = revSparql.split('\n');
-                                outputTo('noerrors');
-                            }
-                        });
-                    }
-                });
-            }
+            it('should convert json-rql to SPARQL for ' + name, function (done) {
+                // Use sparqljs as a common currency for SPARQL
+                var expectedAst = toComparableAst(sparqlParser.parse(sparql));
+                _jrql.toSparql(jrql, pass(function (genSparql) {
+                    var actualAst = toComparableAst(sparqlParser.parse(genSparql));
+                    expect(actualAst).to.deep.equal(expectedAst);
+                    // Check for mutation
+                    expect(jrql).to.deep.equal(unmutated);
+                    done();
+                }, done));
+            });
         });
     });
 });

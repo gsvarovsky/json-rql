@@ -11,8 +11,9 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     var context = jrql['@context'] || {};
 
     function toTriples(jsonld, cb/*(err, [triple])*/) {
-        jsonld['@context'] = _.merge(jsonld['@context'], context);
-        _util.toTriples(_util.hideVars(jsonld), pass(function (triples) {
+        var localContext = _.merge(jsonld['@context'], context);
+        // Clone the json-ld to maintain our non-mutation contract
+        _util.toTriples(_util.hideVars(_.set(_.cloneDeep(jsonld), '@context', localContext)), pass(function (triples) {
             cb(false, _.map(triples, function (triple) {
                 return _.mapValues(triple, _util.unhideVar);
             }));
