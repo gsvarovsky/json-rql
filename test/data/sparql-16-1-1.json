@@ -1,0 +1,12 @@
+{
+  "@context": {"foaf": "http://xmlns.com/foaf/0.1/"},
+  "@select": ["?nameX", "?nameY", "?nickY"],
+  "@where": {
+    "@graph": {
+      "@id": "?x",
+      "foaf:knows": {"@id": "?y", "foaf:name": "?nameY"},
+      "foaf:name": "?nameX"
+    },
+    "@optional": {"@id": "?y", "foaf:nick": "?nickY"}
+  }
+}

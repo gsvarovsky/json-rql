@@ -1,0 +1,6 @@
+{
+  "@context": {"foaf": "http://xmlns.com/foaf/0.1/"},
+  "@select": "?name",
+  "@where": {"@id": "?x", "foaf:name": "?name"},
+  "@orderBy": "?name"
+}

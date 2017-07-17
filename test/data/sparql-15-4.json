@@ -1,0 +1,8 @@
+{
+  "@context": {"foaf": "http://xmlns.com/foaf/0.1/"},
+  "@select": "?name",
+  "@limit": 5,
+  "@offset": 10,
+  "@where": {"@id": "?x", "foaf:name": "?name"},
+  "@orderBy": "?name"
+}
