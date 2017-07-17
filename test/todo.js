@@ -33,7 +33,7 @@ function readJrql(name) {
 }
 
 exports.forEachSparqlExample = function (test/*(name, sparql, jrql)*/) {
-    exampleNames().forEach(function (name) {
+    _.each(exampleNames(), function (name) {
         var sparql = readSparql(name), jrql = readJrql(name);
 
         if (jrql) {
@@ -57,7 +57,7 @@ function writeTodo(pulled) {
 }
 
 function isTodo(name) {
-    return readTodo().includes(name);
+    return _.includes(readTodo(), name);
 }
 
 function rmTodo(name) {
@@ -76,7 +76,7 @@ if (process.argv[1] === __filename) {
         rl.question('Test case (or nothing for next): ', function (name) {
             if (!name) {
                 // Find a test case that is not already tested or in the to-do folder
-                name = exampleNames().find(function (name) {
+                name = _.find(exampleNames(), function (name) {
                     return !isTestCase(name) && !isTodo(name);
                 });
                 if (!name) {
