@@ -11,7 +11,7 @@ describe('SPARQL handling', function () {
     describe('conversion to SPARQL', function () {
         it('should accept variable subject', function (done) {
             _jrql.toSparql({
-                '@select' : ['?s'],
+                '@select' : '?s',
                 '@where' : {
                     '@id' : '?s',
                     'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' : { '@id' : 'http://example.org/cartoons#Cat' }
@@ -25,7 +25,7 @@ describe('SPARQL handling', function () {
 
         it('should accept variable object', function (done) {
             _jrql.toSparql({
-                '@select' : ['?s'],
+                '@select' : '?s',
                 '@where' : {
                     '@id' : 'http://example.org/cartoons#Tom',
                     'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' : { '@id' : '?t' }
@@ -39,7 +39,7 @@ describe('SPARQL handling', function () {
 
         it('should accept variable predicate', function (done) {
             _jrql.toSparql({
-                '@select' : ['?s'],
+                '@select' : '?s',
                 '@where' : {
                     '@id' : 'http://example.org/cartoons#Tom',
                     '?p' : { '@id' : 'http://example.org/cartoons#Cat' }
@@ -47,6 +47,33 @@ describe('SPARQL handling', function () {
             }, pass(function (sparql) {
                 expect(sparql.replace(/\s+/g, ' ')).to.equal(
                     'SELECT ?s WHERE { <http://example.org/cartoons#Tom> ?p <http://example.org/cartoons#Cat>. }');
+                done();
+            }, done));
+        });
+
+        it('should accept an anonymous subject', function (done) {
+            _jrql.toSparql({
+                '@select' : '?t',
+                '@where' : {
+                    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' : { '@id' : '?t' }
+                }
+            }, pass(function (sparql) {
+                expect(sparql.replace(/\s+/g, ' ').replace(/_:\w+/g, '[]')).to.equal(
+                    'SELECT ?t WHERE { [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?t. }');
+                done();
+            }, done));
+        });
+
+        it('should accept an anonymous object', function (done) {
+            _jrql.toSparql({
+                '@select' : '?s',
+                '@where' : {
+                    '@id' : 'http://example.org/cartoons#Tom',
+                    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' : { '@id' : '_:o' }
+                }
+            }, pass(function (sparql) {
+                expect(sparql.replace(/\s+/g, ' ').replace(/_:\w+/g, '[]')).to.equal(
+                    'SELECT ?s WHERE { <http://example.org/cartoons#Tom> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> []. }');
                 done();
             }, done));
         });
@@ -80,7 +107,7 @@ describe('SPARQL handling', function () {
         it('should merge a local JSON-LD @context', function (done) {
             _jrql.toSparql({
                 '@context' : { rdf : 'http://www.w3.org/1999/02/22-rdf-syntax-ns#' },
-                '@select' : ['?s'],
+                '@select' : '?s',
                 '@where' : {
                     '@context' : { cartoon : 'http://example.org/cartoons#' },
                     '@id' : '?s',
@@ -95,7 +122,7 @@ describe('SPARQL handling', function () {
 
         it('should accept a filtered select', function (done) {
             _jrql.toSparql({
-                '@select' : ['?s'],
+                '@select' : '?s',
                 '@where' : {
                     '@graph' : { '@id' : '?s', '?p' : '?o' },
                     '@filter' : { '@in' : ['?s', [{ '@id' : 'http://example.org/cartoons#Tom' }]] }

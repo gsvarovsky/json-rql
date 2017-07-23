@@ -52,8 +52,8 @@ function readTodo() {
     return JSON.parse(_fs.readFileSync(_path.join(dataFolder, 'todo.json'), 'utf-8'));
 }
 
-function writeTodo(pulled) {
-    _fs.writeFileSync(_path.join(dataFolder, 'todo.json'), stringify(pulled));
+function writeTodo(todo) {
+    _fs.writeFileSync(_path.join(dataFolder, 'todo.json'), stringify(todo));
 }
 
 function isTodo(name) {
@@ -70,63 +70,63 @@ function addTodo(name) {
     console.log('%s added to todo list.', name);
 }
 
-if (process.argv[1] === __filename) {
-    var rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    function next() {
-        rl.question('Test case (or nothing for next): ', function (name) {
+function next(rl) {
+    rl.question('Test case (or nothing for next): ', function (name) {
+        if (!name) {
+            // Find a test case that is not already tested or in the to-do folder
+            name = _.find(exampleNames(), function (name) {
+                return !isTestCase(name) && !isTodo(name);
+            });
             if (!name) {
-                // Find a test case that is not already tested or in the to-do folder
-                name = _.find(exampleNames(), function (name) {
-                    return !isTestCase(name) && !isTodo(name);
-                });
-                if (!name) {
-                    console.error('No unconsidered test cases left!');
-                    next();
-                }
+                console.error('No unconsidered test cases left!');
+                next(rl);
             }
+        }
 
-            var sparql = readSparql(name);
-            if (sparql) {
-                console.log('Testing SPARQL %s:', name);
-                console.log(sparql);
+        var sparql = readSparql(name);
+        if (sparql) {
+            console.log('Testing SPARQL %s:', name);
+            console.log(sparql);
 
-                _jrql.toJsonRql(sparql, function (err, jrql, parsed) {
-                    function done(err) {
-                        if (err) {
-                            console.error(err);
-                            console.log(stringify(parsed));
-                            addTodo(name);
-                            next();
-                        } else if (isTestCase(name)) {
-                            next();
-                        } else {
-                            rl.question('Look OK? (y/n) ', function (answer) {
-                                if (answer === 'y' || answer === 'yes') {
-                                    writeJrql(name, jrql);
-                                    console.log('Added to test folder.');
-                                    rmTodo(name);
-                                } else {
-                                    console.log('Parsed:');
-                                    console.log(stringify(parsed));
-                                    addTodo(name);
-                                }
-                                next();
-                            });
-                        }
-                    }
+            _jrql.toJsonRql(sparql, function (err, jrql, parsed) {
+                function done(err) {
                     if (err) {
-                        done(err);
+                        console.error(err);
+                        console.log(stringify(parsed));
+                        addTodo(name);
+                        next(rl);
+                    } else if (isTestCase(name)) {
+                        next(rl);
                     } else {
-                        console.log('json-rql:');
-                        console.log(stringify(jrql));
-                        _jrql.toSparql(jrql, done);
+                        rl.question('Look OK? (y/n) ', function (answer) {
+                            if (answer === 'y' || answer === 'yes') {
+                                writeJrql(name, jrql);
+                                console.log('Added to test folder.');
+                                rmTodo(name);
+                            } else {
+                                console.log('Parsed:');
+                                console.log(stringify(parsed));
+                                addTodo(name);
+                            }
+                            next(rl);
+                        });
                     }
-                });
-            } else {
-                console.error(name + ' not found.');
-                next();
-            }
-        });
-    }
-    next();
+                }
+                if (err) {
+                    done(err);
+                } else {
+                    console.log('json-rql:');
+                    console.log(stringify(jrql));
+                    _jrql.toSparql(jrql, done);
+                }
+            });
+        } else {
+            console.error(name + ' not found.');
+            next(rl);
+        }
+    });
+}
+
+if (process.argv[1] === __filename) {
+    next(readline.createInterface({ input: process.stdin, output: process.stdout }));
 }

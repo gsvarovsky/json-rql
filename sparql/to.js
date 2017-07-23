@@ -54,35 +54,42 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     }
 
     function clauseToSparqlJs(clause, cb/*(err, ast)*/) {
-        if (clause['@id']) {
-            // Straight JSON-LD object. Return array with one bgp.
+        var handlers = {
+            '@graph': function (cb) {
+                return toBgp(_.pick(clause, '@graph'), cb);
+            },
+            '@filter': function (cb) {
+                return _async.map(_.castArray(clause['@filter']), function (expr, cb) {
+                    return _util.ast({ type : 'filter', expression : [expressionToSparqlJs, expr] }, cb);
+                }, cb);
+            },
+            '@optional': function (cb) {
+                return _async.map(_.castArray(clause['@optional']), function (clause, cb) {
+                    return _util.ast({ type : 'optional', patterns : [clauseToSparqlJs, clause] }, cb);
+                }, cb);
+            },
+            '@union': function (cb) {
+                return _util.ast({
+                    type : 'union',
+                    patterns : [_async.map, clause['@union'], function (group, cb) {
+                        return _util.ast({ type : 'group', patterns : [clauseToSparqlJs, group] }, cb);
+                    }]
+                }, cb);
+            }
+        }
+        
+        var hasHandler = _.intersection(_.keys(clause), _.keys(handlers));
+        if (!hasHandler.length) {
+            // Assume a straight JSON-LD object. Return array with one bgp.
             return toBgp(clause, pass(function (result) {
                 cb(false, [result]);
             }, cb));
-        } else {
-            return _async.concat(_.keys(clause), function (key, cb) {
-                switch (key) {
-                    case '@graph':
-                        return toBgp(_.pick(clause, '@graph'), cb);
-                    case '@filter':
-                        return _async.map(_.castArray(clause[key]), function (expr, cb) {
-                            return _util.ast({ type : 'filter', expression : [expressionToSparqlJs, expr] }, cb);
-                        }, cb);
-                    case '@optional':
-                        return _async.map(_.castArray(clause[key]), function (clause, cb) {
-                            return _util.ast({ type : 'optional', patterns : [clauseToSparqlJs, clause] }, cb);
-                        }, cb);
-                    case '@union':
-                        return _util.ast({
-                            type : 'union',
-                            patterns : [_async.map, clause[key], function (group, cb) {
-                                return _util.ast({ type : 'group', patterns : [clauseToSparqlJs, group] }, cb);
-                            }]
-                        }, cb);
-                    default:
-                        return cb('Unsupported clause key: ' + key + ' in ' + JSON.stringify(clause));
-                }
+        } else if (hasHandler.length === _.keys(clause).length) {
+            return _async.concat(hasHandler, function (key, cb) {
+                return handlers[key](cb);
             }, cb);
+        } else {
+            return cb('Clause has bad keys ' + hasHandler);
         }
     }
 
