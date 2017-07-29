@@ -37,7 +37,7 @@ describe('AST utilities', function () {
 
         it('should preserve nested entities', function () {
             var nested = _util.nestGraph([
-                { '@id': '_:a', b : { '@id': '_:b' } },
+                { '@id': '_:a', b : { '@id' : '_:b' } },
                 { '@id': '_:b', c : { '@id' : '_:c' } }
             ]);
             expect(nested).to.deep.equal({ '@id': '_:a', b : { '@id': '_:b', c : { '@id' : '_:c' } } });
@@ -45,11 +45,35 @@ describe('AST utilities', function () {
 
         it('should recursively nest entities', function () {
             var nested = _util.nestGraph([
-                { '@id': '_:a', b : { '@id': '_:b' } },
+                { '@id': '_:a', b : { '@id' : '_:b' } },
                 { '@id': '_:b', c : { '@id' : '_:c' } },
                 { '@id': '_:c', p : 'p' }
             ]);
             expect(nested).to.deep.equal({ '@id': '_:a', b : { '@id': '_:b', c : { '@id' : '_:c', p : 'p' } } });
+        });
+        
+        it('should not nest when there are multiple references', function () {
+            var nested = _util.nestGraph([
+                { '@id': '_:a', b : { '@id' : '_:c' } },
+                { '@id': '_:b', c : { '@id' : '_:c' } },
+                { '@id': '_:c', p : 'p' }
+            ]);
+            expect(nested).to.deep.equal([
+                { '@id': '_:a', b : { '@id' : '_:c' } },
+                { '@id': '_:b', c : { '@id' : '_:c' } },
+                { '@id': '_:c', p : 'p' }
+            ]);
+        });
+        
+        it('should remove singly referenced objects from a separate mutable array of top-level objects', function () {
+            var tlos = [
+                { '@id': '_:b' }
+            ];
+            var nested = _util.nestGraph([
+                { '@id': '_:a', b : { '@id': '_:b' } }
+            ], tlos);
+            expect(nested).to.deep.equal({ '@id': '_:a', b : { '@id': '_:b' } });
+            expect(tlos).to.deep.equal([]);
         });
     });
 });
