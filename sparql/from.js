@@ -44,7 +44,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
         }), parsed.prefixes, pass(function (jsonld) {
             jsonld = _.omit(jsonld, '@context');
             // Optimise away redundant top-level objects
-            jsonld = jsonld['@graph'] ? _util.nestGraph(jsonld['@graph']) : jsonld;
+            jsonld = jsonld['@graph'] ? _util.inlineGraph(jsonld['@graph']) : jsonld;
             // Unhide hidden subjects and predicates
             cb(false, _util.unhideVars(jsonld));
         }, cb));
