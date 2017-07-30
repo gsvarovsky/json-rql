@@ -10,7 +10,7 @@ that conforms in syntax and spirit with [JSON-LD](http://json-ld.org/).
 
 ```javascript
 require('json-rql').toSparql({
-  '@select' : ['?s'],
+  '@select' : '?s',
   '@where' : { '@id' : '?s', '?p' : '?o' }
 }, function (err, sparql) {
   // sparql => SELECT ?s WHERE { ?s ?p ?o. }

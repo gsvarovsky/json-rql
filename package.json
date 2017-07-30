@@ -1,6 +1,6 @@
 {
   "name": "json-rql",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
   "main": "index.js",
   "directories": {
@@ -29,6 +29,7 @@
   "homepage": "https://github.com/gsvarovsky/json-rql#readme",
   "dependencies": {
     "async": "^2.1.1",
+    "gen-id": "^0.1.1",
     "jsonld": "^0.4.11",
     "lodash": "^4.16.4",
     "n3": "^0.11.0",

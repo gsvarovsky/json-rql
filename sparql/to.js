@@ -10,34 +10,39 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     // Prefixes can be applied with either a prefixes hash, or a JSON-LD context hash, both at top level.
     var context = jrql['@context'] || {};
 
-    function toTriples(jsonld, cb/*(err, [triple])*/) {
+    function toTriples(jsonld, allowFilters, cb/*(err, [triple], [filter])*/) {
+        var filters = [];
+        // Clone the json-ld to maintain our non-mutation contract, and capture any in-line filters
+        jsonld = allowFilters ? _.cloneDeepWith(_.omit(jsonld, '@filter'), function (maybeFilter) {
+            var key = _util.getOnlyKey(maybeFilter);
+            if (_util.isOperator(key)) {
+                var variable = _util.newVariable();
+                filters.push(_util.kvo(key, [variable, maybeFilter[key]]));
+                return variable;
+            }
+        }) : _.cloneDeep(jsonld);
         var localContext = _.merge(jsonld['@context'], context);
-        // Clone the json-ld to maintain our non-mutation contract
-        _util.toTriples(_util.hideVars(_.set(_.cloneDeep(jsonld), '@context', localContext)), pass(function (triples) {
+        _util.toTriples(_util.hideVars(_.set(jsonld, '@context', localContext)), pass(function (triples) {
             cb(false, _.map(triples, function (triple) {
                 return _.mapValues(triple, _util.unhideVar);
-            }));
+            }), filters);
         }, cb));
     }
 
-    function toBgp(jsonld, cb/*(err, { type : 'bgp', triples : [] })*/) {
-        return _util.ast({ type : 'bgp', triples : [toTriples, jsonld] }, cb);
-    }
-
     function expressionToSparqlJs(expr, cb/*(err, ast)*/) {
-        var operator = _.isPlainObject(expr) && _.size(expr) === 1 && _.first(_.keys(expr));
-        if (operator) {
-            var argTemplate = [_async.map, _.castArray(expr[operator]), expressionToSparqlJs];
-            if (_.includes(_.values(_util.operators), operator)) {
+        var key = _util.getOnlyKey(expr);
+        if (key) {
+            var argTemplate = [_async.map, _.castArray(expr[key]), expressionToSparqlJs];
+            if (_util.isOperator(key)) {
                 // An operator expression
                 return _util.ast({
                     type : 'operation',
-                    operator : _.invert(_util.operators)[operator],
+                    operator : _.invert(_util.operators)[key],
                     args : argTemplate
                 }, cb);
-            } else if (!operator.startsWith('@')) {
+            } else if (!key.startsWith('@')) {
                 // A function expression
-                return toTriples(_util.kvo(operator, tempObject), pass(function (triples) {
+                return toTriples(_util.kvo(key, tempObject), false, pass(function (triples) {
                     return _util.ast({
                         type : 'functionCall',
                         function : triples[0].predicate,
@@ -48,49 +53,44 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
             }
         }
         // JSON-LD value e.g. literal, [literal], { @id : x } or { @value : x, @language : y }
-        return toTriples(_util.kvo(tempPredicate, expr), pass(function (triples) {
+        return toTriples(_util.kvo(tempPredicate, expr), false, pass(function (triples) {
             return cb(false, _.isArray(expr) ? _.map(triples, 'object') : triples[0].object);
         }, cb));
     }
 
     function clauseToSparqlJs(clause, cb/*(err, ast)*/) {
-        var handlers = {
-            '@graph': function (cb) {
-                return toBgp(_.pick(clause, '@graph'), cb);
+        // noinspection JSUnusedGlobalSymbols
+        return _async.auto({
+            bgp : function (cb) {
+                // Try to turn the whole clause into a BGP
+                return toTriples(clause, true, pass(function (triples, filters) {
+                    // Pollute the bgp clause slightly with the filters (ignored by sparql.js)
+                    return cb(false, !_.isEmpty(triples) && { type : 'bgp', triples : triples, filters : filters });
+                }, cb));
             },
-            '@filter': function (cb) {
-                return _async.map(_.castArray(clause['@filter']), function (expr, cb) {
+            filters : ['bgp', function ($, cb) {
+                // Combine in-line filters with explicit filters
+                var allFilters = _.compact(_.concat(_.get($.bgp, 'filters'), _.castArray(clause['@filter'])));
+                return _async.map(allFilters, function (expr, cb) {
                     return _util.ast({ type : 'filter', expression : [expressionToSparqlJs, expr] }, cb);
                 }, cb);
-            },
-            '@optional': function (cb) {
+            }],
+            optionals : clause['@optional'] ? function (cb) {
                 return _async.map(_.castArray(clause['@optional']), function (clause, cb) {
                     return _util.ast({ type : 'optional', patterns : [clauseToSparqlJs, clause] }, cb);
                 }, cb);
-            },
-            '@union': function (cb) {
+            } : _async.constant(),
+            unions : clause['@union'] ? function (cb) {
                 return _util.ast({
                     type : 'union',
                     patterns : [_async.map, clause['@union'], function (group, cb) {
                         return _util.ast({ type : 'group', patterns : [clauseToSparqlJs, group] }, cb);
                     }]
-                }, cb);
-            }
-        }
-        
-        var hasHandler = _.intersection(_.keys(clause), _.keys(handlers));
-        if (!hasHandler.length) {
-            // Assume a straight JSON-LD object. Return array with one bgp.
-            return toBgp(clause, pass(function (result) {
-                cb(false, [result]);
-            }, cb));
-        } else if (hasHandler.length === _.keys(clause).length) {
-            return _async.concat(hasHandler, function (key, cb) {
-                return handlers[key](cb);
-            }, cb);
-        } else {
-            return cb('Clause has bad keys ' + hasHandler);
-        }
+                }, cb)
+            } : _async.constant()
+        }, pass(function ($) {
+            return cb(false, _.compact(_.flatten(_.values($))));
+        }, cb));
     }
 
     var type = !_.isEmpty(_.pick(jrql, '@select', '@distinct', '@construct', '@describe')) ? 'query' :
@@ -103,7 +103,7 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         variables : jrql['@select'] || jrql['@distinct'] || jrql['@describe'] ?
             _.castArray(jrql['@select'] || jrql['@distinct'] || jrql['@describe']) : undefined,
         distinct : !!jrql['@distinct'] || undefined,
-        template : jrql['@construct'] ? [toTriples, jrql['@construct']] : undefined,
+        template : jrql['@construct'] ? [toTriples, jrql['@construct'], false] : undefined,
         where : jrql['@where'] && type === 'query' ? [clauseToSparqlJs, jrql['@where']] : undefined,
         updates : type === 'update' ? function (cb) {
             return _util.ast({

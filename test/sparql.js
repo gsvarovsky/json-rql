@@ -8,7 +8,7 @@ var _ = require('lodash'),
     forEachSparqlExample = require('./todo').forEachSparqlExample;
 
 describe('SPARQL handling', function () {
-    describe('conversion to SPARQL', function () {
+    describe('Conversion to SPARQL', function () {
         it('should accept variable subject', function (done) {
             _jrql.toSparql({
                 '@select' : '?s',
@@ -120,7 +120,7 @@ describe('SPARQL handling', function () {
             }, done));
         });
 
-        it('should accept a filtered select', function (done) {
+        it('should accept an explicitly filtered select', function (done) {
             _jrql.toSparql({
                 '@select' : '?s',
                 '@where' : {
@@ -134,12 +134,49 @@ describe('SPARQL handling', function () {
             }, done));
         });
 
+        it('should accept an inlined filtered object with a comparison', function (done) {
+            _jrql.toSparql({
+                '@select' : '?s',
+                '@where' : { '@id' : '?s', '?p' : { '@gt' : 1 } }
+            }, pass(function (sparql) {
+                expect(sparql.replace(/\s+/g, ' ').replace(/\?jrql_[\d\w]{4}/g, '?o')).to.equal(
+                    'SELECT ?s WHERE { ?s ?p ?o. FILTER(?o > 1 ) }');
+                done();
+            }, done));
+        });
+
+        it('should accept an inlined filtered object with an IN clause', function (done) {
+            _jrql.toSparql({
+                '@select' : '?s',
+                '@where' : { '@id' : '?s', '?p' : { '@in' : [{ '@id' : 'http://example.org/cartoons#Tom' }] } }
+            }, pass(function (sparql) {
+                expect(sparql.replace(/\s+/g, ' ').replace(/\?jrql_[\d\w]{4}/g, '?o')).to.equal(
+                    'SELECT ?s WHERE { ?s ?p ?o. FILTER(?o IN(<http://example.org/cartoons#Tom>)) }');
+                done();
+            }, done));
+        });
+
         it('should accept an update with where and delete', function (done) {
             _jrql.toSparql({
                 '@delete' : { '@id' : '?s', '?p' : '?o' },
                 '@where' : { '@id' : '?s', '?p' : '?o' }
             }, pass(function (sparql) {
                 expect(sparql.replace(/\s+/g, ' ')).to.equal('DELETE { ?s ?p ?o. } WHERE { ?s ?p ?o. }');
+                done();
+            }, done));
+        });
+    });
+
+    describe('Conversion from SPARQL', function () {
+        it('should not in-line multiply-referenced filtered variables', function (done) {
+            _jrql.toJsonRql('SELECT ?s WHERE { ?s ?p ?o. FILTER(?s IN(<http://example.org/cartoons#Tom>)) }', pass(function (jrql) {
+                expect(jrql).to.deep.equal({
+                    '@select' : '?s',
+                    '@where' : {
+                        '@graph' : { '@id' : '?s', '?p' : '?o' },
+                        '@filter' : { '@in' : ['?s', { '@id' : 'http://example.org/cartoons#Tom' }] }
+                    }
+                });
                 done();
             }, done));
         });
