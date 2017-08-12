@@ -60,7 +60,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
         return _util.ast({
             '@graph' : byType.bgp ? [triplesToJsonLd, byType.bgp('triples')] : undefined,
             '@filter' : byType.filter ?
-                [_util.miniMap, byType.filter('expression'), expressionToJsonLd] : undefined,
+                [_async.map, byType.filter('expression'), expressionToJsonLd] : undefined,
             '@optional' : byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
                 [_util.miniMap, byType.optional('patterns', true), clausesToJsonLd] : undefined,
             '@union' : byType.union ?
@@ -69,9 +69,13 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                     return clause.type === 'group' ? clause.patterns : [clause];
                 }), clausesToJsonLd] : undefined
         }, pass(function (result) {
-            // If a graph is the only thing we have, flatten it
-            result = _.pickBy(result);
-            return cb(false, _.isEqual(_.keys(result), ['@graph']) ? result['@graph'] : result);
+            // In-line filters
+            if (result['@graph'] && result['@filter']) {
+                result['@graph'] = _util.inlineFilters(result['@graph'], result['@filter']);
+                _.isEmpty(result['@filter'] = _util.unArray(result['@filter'])) && delete result['@filter'];
+            }
+            // If a singleton graph is the only thing we have, flatten it
+            return cb(false, _util.getOnlyKey(result) === '@graph' ? result['@graph'] : result);
         }, cb));
     }
 

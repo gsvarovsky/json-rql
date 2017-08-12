@@ -11,12 +11,13 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     var context = jrql['@context'] || {};
 
     function toTriples(jsonld, allowFilters, cb/*(err, [triple], [filter])*/) {
+        !_.isArray(jsonld) || (jsonld = { '@graph' : jsonld });
         var filters = [];
         // Clone the json-ld to maintain our non-mutation contract, and capture any in-line filters
         jsonld = allowFilters ? _.cloneDeepWith(_.omit(jsonld, '@filter'), function (maybeFilter) {
-            var key = _util.getOnlyKey(maybeFilter);
-            if (_util.isOperator(key)) {
-                var variable = _util.newVariable();
+            var key = _util.getOnlyKey(_.omit(maybeFilter, '@id'));
+            if (_util.isOperator(key) && (!maybeFilter['@id'] || _util.matchVar(maybeFilter['@id']))) {
+                var variable = maybeFilter['@id'] || _util.newVariable();
                 filters.push(_util.kvo(key, [variable, maybeFilter[key]]));
                 return variable;
             }

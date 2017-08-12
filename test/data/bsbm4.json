@@ -11,32 +11,26 @@
   "@where": {
     "@union": [
       {
-        "@graph": {
-          "@id": "?product",
-          "@type": "bsbm-inst:ProductType140",
-          "rdfs:label": "?label",
-          "bsbm:productFeature": [
-            {"@id": "bsbm-inst:ProductFeature4373"},
-            {"@id": "bsbm-inst:ProductFeature1475"}
-          ],
-          "bsbm:productPropertyNumeric1": "?p1",
-          "bsbm:productPropertyTextual1": "?propertyTextual"
-        },
-        "@filter": {"@gt": ["?p1", 160]}
+        "@id": "?product",
+        "@type": "bsbm-inst:ProductType140",
+        "rdfs:label": "?label",
+        "bsbm:productFeature": [
+          {"@id": "bsbm-inst:ProductFeature4373"},
+          {"@id": "bsbm-inst:ProductFeature1475"}
+        ],
+        "bsbm:productPropertyNumeric1": {"@id": "?p1", "@gt": 160},
+        "bsbm:productPropertyTextual1": "?propertyTextual"
       },
       {
-        "@graph": {
-          "@id": "?product",
-          "@type": "bsbm-inst:ProductType140",
-          "rdfs:label": "?label",
-          "bsbm:productFeature": [
-            {"@id": "bsbm-inst:ProductFeature4373"},
-            {"@id": "bsbm-inst:ProductFeature4372"}
-          ],
-          "bsbm:productPropertyNumeric2": "?p2",
-          "bsbm:productPropertyTextual1": "?propertyTextual"
-        },
-        "@filter": {"@gt": ["?p2", 77]}
+        "@id": "?product",
+        "@type": "bsbm-inst:ProductType140",
+        "rdfs:label": "?label",
+        "bsbm:productFeature": [
+          {"@id": "bsbm-inst:ProductFeature4373"},
+          {"@id": "bsbm-inst:ProductFeature4372"}
+        ],
+        "bsbm:productPropertyNumeric2": {"@id": "?p2", "@gt": 77},
+        "bsbm:productPropertyTextual1": "?propertyTextual"
       }
     ]
   },

@@ -6,11 +6,8 @@
   },
   "@select": ["?product", "?label"],
   "@where": {
-    "@graph": {
-      "@id": "?product",
-      "@type": "bsbm:Product",
-      "rdfs:label": "?label"
-    },
-    "@filter": {"@regex": ["?label", "word"]}
+    "@id": "?product",
+    "@type": "bsbm:Product",
+    "rdfs:label": {"@id": "?label", "@regex": "word"}
   }
 }

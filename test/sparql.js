@@ -1,6 +1,5 @@
 var _ = require('lodash'),
     _jrql = require('../index'),
-    hash = require('object-hash'),
     pass = require('pass-error'),
     expect = require('chai').expect,
     toComparableAst = require('./sparqljsUtil').toComparableAst,
@@ -145,6 +144,17 @@ describe('SPARQL handling', function () {
             }, done));
         });
 
+        it('should accept an inlined filtered object with a variable name', function (done) {
+            _jrql.toSparql({
+                '@select' : '?s',
+                '@where' : { '@id' : '?s', '?p' : { '@id' : '?o', '@gt' : 1 } }
+            }, pass(function (sparql) {
+                expect(sparql.replace(/\s+/g, ' ')).to.equal(
+                    'SELECT ?s WHERE { ?s ?p ?o. FILTER(?o > 1 ) }');
+                done();
+            }, done));
+        });
+
         it('should accept an inlined filtered object with an IN clause', function (done) {
             _jrql.toSparql({
                 '@select' : '?s',
@@ -168,13 +178,23 @@ describe('SPARQL handling', function () {
     });
 
     describe('Conversion from SPARQL', function () {
-        it('should not in-line multiply-referenced filtered variables', function (done) {
-            _jrql.toJsonRql('SELECT ?s WHERE { ?s ?p ?o. FILTER(?s IN(<http://example.org/cartoons#Tom>)) }', pass(function (jrql) {
+        it('should in-line singly referenced filters', function (done) {
+            _jrql.toJsonRql('SELECT ?s WHERE { ?s ?p ?o. FILTER(?o IN(<http://example.org/cartoons#Tom>)) }', pass(function (jrql) {
+                expect(jrql).to.deep.equal({
+                    '@select' : '?s',
+                    '@where' : { '@id' : '?s', '?p' : { '@id' : '?o', '@in' : { '@id' : 'http://example.org/cartoons#Tom' } } }
+                });
+                done();
+            }, done));
+        });
+
+        it('should not in-line multiply-referenced filters', function (done) {
+            _jrql.toJsonRql('SELECT ?s WHERE { ?s ?p ?o. ?s2 ?p2 ?o. FILTER(?o IN(<http://example.org/cartoons#Tom>)) }', pass(function (jrql) {
                 expect(jrql).to.deep.equal({
                     '@select' : '?s',
                     '@where' : {
-                        '@graph' : { '@id' : '?s', '?p' : '?o' },
-                        '@filter' : { '@in' : ['?s', { '@id' : 'http://example.org/cartoons#Tom' }] }
+                        '@graph' : [{ '@id' : '?s', '?p' : '?o' }, { '@id' : '?s2', '?p2' : '?o' }],
+                        '@filter' : { '@in' : ['?o', { '@id' : 'http://example.org/cartoons#Tom' }] }
                     }
                 });
                 done();
@@ -187,8 +207,8 @@ describe('SPARQL handling', function () {
             var unmutated = _.cloneDeep(jrql);
 
             it('should convert SPARQL to json-rql for ' + name, function (done) {
-                _jrql.toJsonRql(sparql, pass(function (jrql) {
-                    expect(jrql).to.deep.equal(jrql);
+                _jrql.toJsonRql(sparql, pass(function (genJrql) {
+                    expect(genJrql).to.deep.equal(jrql);
                     done();
                 }, done));
             });

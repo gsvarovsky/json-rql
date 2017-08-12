@@ -1,5 +1,4 @@
-var _ = require('lodash'),
-    _util = require('../lib/util'),
+var _util = require('../lib/util'),
     expect = require('chai').expect;
 
 describe('AST utilities', function () {
@@ -68,14 +67,17 @@ describe('AST utilities', function () {
 
     describe('Filter inlining', function () {
         it('should inline a property value filter', function () {
-            var filters = [
-                { '@gt' : ['?v', 1] }
-            ];
-            var inlined = _util.inlineFilters([
-                { 'p' : '?v' }
-            ], filters);
-            expect(inlined).to.deep.equal({ 'p' : { '@gt' : 1 } });
+            var filters = [{ '@gt' : ['?v', 1] }];
+            var inlined = _util.inlineFilters([{ 'p' : '?v' }], filters);
+            expect(inlined).to.deep.equal({ 'p' : { '@id' : '?v', '@gt' : 1 } });
             expect(filters).to.deep.equal([]);
+        });
+
+        it('should not inline a property value filter if multiply referenced', function () {
+            var filters = [{ '@gt' : ['?v', 1] }];
+            var inlined = _util.inlineFilters([{ 'p' : '?v' }, { 'p2' : '?v' }], filters);
+            expect(inlined).to.deep.equal([{ 'p' : '?v' }, { 'p2' : '?v' }]);
+            expect(filters).to.deep.equal([{ '@gt' : ['?v', 1] }]);
         });
     });
 });

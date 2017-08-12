@@ -6,19 +6,16 @@
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   },
   "@distinct": ["?product", "?label"],
+  "@limit": 10,
   "@where": {
-    "@graph": {
-      "@id": "?product",
-      "@type": "bsbm-inst:ProductType105",
-      "rdfs:label": "?label",
-      "bsbm:productFeature": [
-        {"@id": "bsbm-inst:ProductFeature815"},
-        {"@id": "bsbm-inst:ProductFeature814"}
-      ],
-      "bsbm:productPropertyNumeric1": "?value1"
-    },
-    "@filter": {"@gt": ["?value1", 486]}
+    "@id": "?product",
+    "@type": "bsbm-inst:ProductType105",
+    "rdfs:label": "?label",
+    "bsbm:productFeature": [
+      {"@id": "bsbm-inst:ProductFeature815"},
+      {"@id": "bsbm-inst:ProductFeature814"}
+    ],
+    "bsbm:productPropertyNumeric1": {"@id": "?value1", "@gt": 486}
   },
-  "@orderBy": "?label",
-  "@limit": 10
+  "@orderBy": "?label"
 }

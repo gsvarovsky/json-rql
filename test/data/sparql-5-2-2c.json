@@ -2,7 +2,8 @@
   "@context": {"foaf": "http://xmlns.com/foaf/0.1/"},
   "@select": ["?name", "?mbox"],
   "@where": {
-    "@graph": {"@id": "?x", "foaf:mbox": "?mbox", "foaf:name": "?name"},
-    "@filter": {"@regex": ["?name", "Smith"]}
+    "@id": "?x",
+    "foaf:mbox": "?mbox",
+    "foaf:name": {"@id": "?name", "@regex": "Smith"}
   }
 }

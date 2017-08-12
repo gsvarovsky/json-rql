@@ -3,7 +3,6 @@ var _ = require('lodash'),
     _path = require('path'),
     _jrql = require('../index'),
     readline = require('readline'),
-    pass = require('pass-error'),
     stringify = require('json-stringify-pretty-compact'),
     sparqlFolder = _path.join(__dirname, '../node_modules/sparqljs/queries'),
     dataFolder = _path.join(__dirname, 'data');
