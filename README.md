@@ -2,11 +2,26 @@
 [![GitHub stars](https://img.shields.io/github/stars/gsvarovsky/json-rql.svg)](https://github.com/gsvarovsky/json-rql/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/gsvarovsky/json-rql.svg)](https://github.com/gsvarovsky/json-rql/issues)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/gsvarovsky/json-rql/master/LICENSE)
+[![Try json-rql on RunKit](https://badge.runkitcdn.com/json-rql.svg)](https://npm.runkit.com/json-rql)
 # json-rql
-_JSON RDF Query Language, a JSON-LD based SPARQL serialisation_
+_JSON Resource Query Language, for simple, consistent query APIs_
 
-Actually, just a wrapper around [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
-that conforms in syntax and spirit with [JSON-LD](http://json-ld.org/).
+This repository and library primarily presents a _convention_ for expressing queries against structured resources, using JSON. It is intended to help application developers resolve the tensions between _expressibility_ and _simplicity_, and between _agility_ and _future-proofing_, in API design. It is based on [JSON-LD](https://json-ld.org).
+
+A simple example query:
+```json
+{ "@where" : { "@type" : "Person", "name" : { "@contains" : "Fred" } } }
+```
+
+1. It's JSON: straightforward to construct in code, manipulate and serialize, and also to _constrain_. Use standard JSON tooling to limit your API to the queries that your back-end has been designed and tested for.
+2. It's SPARQL: _in context_, all queries can be translated to the W3C standard language for directed, labeled graph data. This means that your API can be extended to cover future query requirements, without breaking changes.
+
+Please see [the wiki](https://github.com/gsvarovsky/json-rql/wiki) for a narrative explanation of these design choices, and for a walkthrough of common query types.
+
+**[Feedback](https://github.com/gsvarovsky/json-rql/issues) and contributions welcome!**
+
+## SPARQL Translation
+This library serves to demonstrate and test interconvertibility of **json-rql** and SPARQL. It can be used directly in a Javascript environment to translate queries, for example in an API implementation where the back-end supports SPARQL.
 
 ```javascript
 require('json-rql').toSparql({
@@ -17,13 +32,11 @@ require('json-rql').toSparql({
 });
 ```
 
-This is intended to be useful in constructing SPARQL expressions in Javascript.
-[Feedback](https://github.com/gsvarovsky/json-rql/issues) and contributions welcome!
+For translation into SPARQL, a **json-rql** query typically requires a `@select`, `@construct` or `@describe` clause, and a `@context` to provide the mapping between terms and IRIs. (When used in an API, these elements will often derive from the call context.)
 
-The syntax follows as closely as possible to [SPARQL](https://www.w3.org/TR/rdf-sparql-query), using
-JSON-LD-style (camelcase) keywords for SPARQL language keywords. Supported so far are:
+SPARQL language keywords supported so far are:
 
-`SELECT`, `CONSTRUCT`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `LIMIT`, `OFFSET`
+`SELECT`, `CONSTRUCT`, `DESCRIBE`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `LIMIT`, `OFFSET`
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript
@@ -51,36 +64,30 @@ require('json-rql').toSparql({
   // }
 });
 ```
-Notice that the `@where` clause is _nested_. This is the advantage of JSON-LD, coming to SPARQL:
-it's more natural to read and author related clauses when they can be in-lined, rather than having to
-visually grep for triples related by variable names in a list.
 
-See the tests (especially the JSON files in test/sparql) for more examples.
+See the tests (especially the JSON files in test/data) for more examples.
 
-## Rules and Gotchas
+### Rules and Gotchas
 * Use `@distinct` for `SELECT DISTINCT`
 * `@where` is an object which is either just one JSON-LD (nested) object, or a `@graph`, plus any
 other required clauses like `@filter`, `@optional` etc.
 
-## Operators
+### Operators
 Operator expressions are an object with one key (the operator), whose value is the operator arguments; e.g. `{ '@regex' : ['?label', 'word'] }`.
+
+The exception to this is the use of in-line filters, which are like infix operators. In this case, the filter is embedded in the graph, and the first parameter to the operator is an implicit variable (see the top example above). The variable can be made explicit by the use of an `@id` tag as follows:
+```json
+"@where": { "@id": "?s", "p": { "@id" : "?o", "@contains": "fred" } }
+```
 
 The supported operators can be found in [operators.json](lib/operators.json).
 
-## But also...
-You know what's exciting about this?
-
-Imagine for a second that you had a document index like [elasticsearch](https://www.elastic.co/products/elasticsearch) containing Artists, and their birthplaces as nested documents. Well, then you could trivially translate the JSON example above into an elasticsearch query.
-
-Let's say further that you have several such indexes for different document shapes, as well as a Triplestore; with all of this fronted by an API accepting **json-rql**. Your API gateway can then pattern-match the requests against the document structure of your indexes, and quickly choose the optimal one, falling back on the Triplestore if no matching one exists.
-
-Now, this might not be the right thing for production, after all, it effectively means your API is contracted to respond to arbitrary SPARQL queries. However, using this pattern during _development_ means you can decouple your client team from your back-end team. The client team can come up with whatever queries they like, and the back-end team can watch the performance tests in the CI pipeline and optimise the indexes to suit. Then, as the product reaches viability, the Triplestore umbilical can be snipped off, and the API will start responding with `501 Not Implemented` to queries for which it does not have an index.
-
-Combine this with [JSON-LD Framing](http://json-ld.org/spec/latest/json-ld-framing/) for the returned documents, and this is very similar to the thinking underlying [GraphQL](http://graphql.org/), but with Semantic Web tech.
-
 ## References
-* [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
 * [JSON-LD Home](http://json-ld.org/)
 * [JSON-LD Specification](http://json-ld.org/spec/latest/json-ld/)
 * [SPARQL](https://www.w3.org/TR/rdf-sparql-query)
-* [elasticsearch](https://www.elastic.co/products/elasticsearch)
+* [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
+* [JSON Schema](http://json-schema.org/)
+* [Joi](https://github.com/hapijs/joi)
+* [Jackson](https://github.com/FasterXML/jackson)
+* [Resource Query Language (URL query-based)](https://github.com/persvr/rql)
