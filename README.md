@@ -67,22 +67,7 @@ require('json-rql').toSparql({
 
 See the tests (especially the JSON files in test/data) for more examples.
 
-### Rules and Gotchas
-* Use `@distinct` for `SELECT DISTINCT`
-* `@where` is an object which is either just one JSON-LD (nested) object, or a `@graph`, plus any
-other required clauses like `@filter`, `@optional` etc.
-
-### Operators
-Operator expressions are an object with one key (the operator), whose value is the operator arguments; e.g. `{ '@regex' : ['?label', 'word'] }`.
-
-The exception to this is the use of in-line filters, which are like infix operators. In this case, the filter is embedded in the graph, and the first parameter to the operator is an implicit variable (see the top example above). The variable can be made explicit by the use of an `@id` tag as follows:
-```json
-"@where": { "@id": "?s", "p": { "@id" : "?o", "@contains": "fred" } }
-```
-
-The supported operators can be found in [operators.json](lib/operators.json).
-
-## References
+## Useful Links
 * [JSON-LD Home](http://json-ld.org/)
 * [JSON-LD Specification](http://json-ld.org/spec/latest/json-ld/)
 * [SPARQL](https://www.w3.org/TR/rdf-sparql-query)
