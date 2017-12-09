@@ -72,7 +72,11 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                     [_async.map, _.map(_.flatMap(byType.union, 'patterns'), function (clause) {
                         // Each 'group' is an array of patterns
                         return clause.type === 'group' ? clause.patterns : [clause];
-                    }), clausesToJsonLd] : undefined
+                    }), clausesToJsonLd] : undefined,
+                '@values' : byType.values ? _.flatMap(byType.values, function (valuesAst) {
+                    // SPARQL.js leaves undefined values for UNDEF variable values
+                    return _.map(valuesAst.values, function (value) { return _.omitBy(value, _.isUndefined); });
+                }) : undefined
             }, pass(function (result) {
                 // In-line filters
                 if (result['@graph'] && result['@filter']) {
@@ -88,7 +92,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     }
 
     _util.ast({
-        '@context' : !_.isEmpty(parsed.prefixes) ? parsed.prefixes : undefined,
+        '@context' : !_.isEmpty(parsed.prefixes) ? _util.toContext(parsed.prefixes) : undefined,
         '@construct' : parsed.queryType === 'CONSTRUCT' ? [triplesToJsonLd, parsed.template] : undefined,
         '@select' : parsed.queryType === 'SELECT' && !parsed.distinct ? _util.unArray(parsed.variables) : undefined,
         '@describe' : parsed.queryType === 'DESCRIBE' ? _util.unArray(parsed.variables) : undefined,

@@ -14,7 +14,7 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         !_.isArray(jsonld) || (jsonld = { '@graph' : jsonld });
         var filters = [];
         // Clone the json-ld to maintain our non-mutation contract, and capture any in-line filters
-        jsonld = allowFilters ? _.cloneDeepWith(_.omit(jsonld, '@filter', '@bind'), function (maybeFilter) {
+        jsonld = allowFilters ? _.cloneDeepWith(_.omit(jsonld, '@filter', '@bind', '@values'), function (maybeFilter) {
             var key = _util.getOnlyKey(_.omit(maybeFilter, '@id'));
             if (_util.operators[key] && (!maybeFilter['@id'] || _util.matchVar(maybeFilter['@id']))) {
                 var variable = maybeFilter['@id'] || _util.newVariable();
@@ -128,7 +128,8 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
                         return _util.ast({ type : 'group', patterns : [groupToSparqlJs, group] }, cb);
                     }]
                 }, cb)
-            } : _async.constant()
+            } : _async.constant(),
+            values : _async.constant(clause['@values'] ? { type : 'values', values : clause['@values'] } : undefined)
         }, pass(function ($) {
             return cb(false, _.compact(_.flatten(_.values($))));
         }, cb));
