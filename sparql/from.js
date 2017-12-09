@@ -57,31 +57,33 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     }
 
     function clausesToJsonLd(clauses, cb) {
-        var byType = _.mapValues(_.groupBy(clauses, 'type'), function (homoClauses) {
-            return !_.isEmpty(homoClauses) && homoClauses;
-        });
-        return _util.ast({
-            '@graph' : byType.bgp ? [triplesToJsonLd, _.flatMap(byType.bgp, 'triples')] : undefined,
-            '@bind' : byType.bind ? [_async.mapValues, _.transform(byType.bind, function (bind, clause) {
-                bind[clause.variable] = clause.expression;
-            }, {}), function (v, k, cb) { return expressionToJsonLd(v, cb); }] : undefined,
-            '@filter' : byType.filter ?
-                [_async.map, _.flatMap(byType.filter, 'expression'), expressionToJsonLd] : undefined,
-            '@optional' : byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
-                [_util.miniMap, _.map(byType.optional, 'patterns'), clausesToJsonLd] : undefined,
-            '@union' : byType.union ?
-                [_async.map, _.map(_.flatMap(byType.union, 'patterns'), function (clause) {
-                    // Each 'group' is an array of patterns
-                    return clause.type === 'group' ? clause.patterns : [clause];
-                }), clausesToJsonLd] : undefined
-        }, pass(function (result) {
-            // In-line filters
-            if (result['@graph'] && result['@filter']) {
-                result['@graph'] = _util.inlineFilters(result['@graph'], result['@filter']);
-                _.isEmpty(result['@filter'] = _util.unArray(result['@filter'])) && delete result['@filter'];
-            }
-            // If a singleton graph is the only thing we have, flatten it
-            return cb(false, _util.getOnlyKey(result) === '@graph' ? result['@graph'] : result);
+        var byType = _.groupBy(clauses, 'type');
+        return _async.map(_.map(byType.group, 'patterns'), clausesToJsonLd, pass(function (groups) {
+            return _util.ast({
+                '@graph' : byType.bgp ? [triplesToJsonLd, _.flatMap(byType.bgp, 'triples')] : undefined,
+                '@bind' : byType.bind ? [_async.mapValues, _.transform(byType.bind, function (bind, clause) {
+                    bind[clause.variable] = clause.expression;
+                }, {}), function (v, k, cb) { return expressionToJsonLd(v, cb); }] : undefined,
+                '@filter' : byType.filter ?
+                    [_async.map, _.flatMap(byType.filter, 'expression'), expressionToJsonLd] : undefined,
+                '@optional' : byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
+                    [_util.miniMap, _.map(byType.optional, 'patterns'), clausesToJsonLd] : undefined,
+                '@union' : byType.union ?
+                    [_async.map, _.map(_.flatMap(byType.union, 'patterns'), function (clause) {
+                        // Each 'group' is an array of patterns
+                        return clause.type === 'group' ? clause.patterns : [clause];
+                    }), clausesToJsonLd] : undefined
+            }, pass(function (result) {
+                // In-line filters
+                if (result['@graph'] && result['@filter']) {
+                    result['@graph'] = _util.inlineFilters(result['@graph'], result['@filter']);
+                    _.isEmpty(result['@filter'] = _util.unArray(result['@filter'])) && delete result['@filter'];
+                }
+                // If a singleton graph is the only thing we have, flatten it
+                if (_util.getOnlyKey(result) === '@graph')
+                    result = result['@graph'];
+                return cb(false, _util.unArray(_.isEmpty(result) ? groups : groups.concat(result)));
+            }, cb));
         }, cb));
     }
 

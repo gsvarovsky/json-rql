@@ -67,7 +67,35 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     }
 
     function clauseToSparqlJs(clause, cb/*(err, ast)*/) {
-        // noinspection JSUnusedGlobalSymbols
+        if (_.isArray(clause)) {
+            return _async.reduce(clause, { ngItems : [], patterns : [] }, function ($, item, cb) {
+                var group = _.pick(item, '@graph', '@bind', '@filter', '@union', '@optional');
+                if (_.isEmpty(group)) {
+                    return cb(false, _.set($, 'ngItems', $.ngItems.concat(item)));
+                } else {
+                    // Bank any non-group patterns gathered so far
+                    return groupToSparqlJs($.ngItems, pass(function (ngPatterns) {
+                        // Create a group pattern
+                        return _util.ast({ type : 'group', patterns : [groupToSparqlJs, group] }, pass(function (gp) {
+                            return cb(false, { ngItems : [], patterns : $.patterns.concat(ngPatterns).concat(gp) });
+                        }, cb));
+                    }, cb));
+                }
+            }, pass(function ($) {
+                return groupToSparqlJs($.ngItems, pass(function (ngPatterns) {
+                    // Inline any trailing group
+                    var patterns = $.patterns.concat(ngPatterns);
+                    if (_.isMatch(_.last(patterns), { type : 'group' }))
+                        patterns = _.initial(patterns).concat(_.last(patterns).patterns);
+                    return cb(false, patterns);
+                }, cb));
+            }, cb));
+        } else {
+            return groupToSparqlJs(clause, cb);
+        }
+    }
+
+    function groupToSparqlJs(clause, cb/*(err, ast)*/) {
         return _async.auto({
             bgp : function (cb) {
                 // Try to turn the whole clause into a BGP
@@ -90,14 +118,14 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
             }],
             optionals : clause['@optional'] ? function (cb) {
                 return _async.map(_.castArray(clause['@optional']), function (clause, cb) {
-                    return _util.ast({ type : 'optional', patterns : [clauseToSparqlJs, clause] }, cb);
+                    return _util.ast({ type : 'optional', patterns : [groupToSparqlJs, clause] }, cb);
                 }, cb);
             } : _async.constant(),
             unions : clause['@union'] ? function (cb) {
                 return _util.ast({
                     type : 'union',
                     patterns : [_async.map, clause['@union'], function (group, cb) {
-                        return _util.ast({ type : 'group', patterns : [clauseToSparqlJs, group] }, cb);
+                        return _util.ast({ type : 'group', patterns : [groupToSparqlJs, group] }, cb);
                     }]
                 }, cb)
             } : _async.constant()
@@ -135,6 +163,10 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         limit : jrql['@limit'],
         offset : jrql['@offset']
     }, pass(function (sparqljs) {
-        return cb(false, sparqlGenerator.stringify(sparqljs), sparqljs);
+        try {
+            return cb(false, sparqlGenerator.stringify(sparqljs), sparqljs);
+        } catch (e) {
+            return cb(e, null, sparqljs);
+        }
     }, cb)) : cb('Unsupported type');
 };

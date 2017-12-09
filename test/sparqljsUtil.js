@@ -1,6 +1,5 @@
 var _ = require('lodash'),
     hash = require('object-hash'),
-    pass = require('pass-error'),
     expect = require('chai').expect;
 
 function toComparableAst(ast) {

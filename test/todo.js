@@ -88,40 +88,38 @@ function next(rl) {
             console.log(sparql);
 
             _jrql.toJsonRql(sparql, function (err, jrql, parsed) {
-                function done(err) {
+                function done(err, genSparql, unparsed) {
+                    genSparql && console.log('Generated SPARQL:\n' + genSparql);
+
                     if (err) {
                         console.error(err);
-                        console.log(stringify(parsed));
-                        addTodo(name);
-                        next(rl);
                     } else if (isTestCase(name)) {
-                        next(rl);
-                    } else {
-                        rl.question('Look OK? (yes/todo/fix) ', function (answer) {
-                            if (answer.startsWith('y')) {
-                                writeJrql(name, jrql);
-                                console.log('Added to test folder.');
-                                rmTodo(name);
-                                next(rl);
-                            } else {
-                                console.log('Parsed:');
-                                console.log(stringify(parsed));
-                                if (answer.startsWith('t')) {
-                                    addTodo(name);
-                                    next(rl);
-                                } else {
-                                    console.log('Have fun!');
-                                    rl.close();
-                                }
-                            }
-                        });
+                        return next(rl);
                     }
+
+                    rl.question('OK? (yes/todo/fix) ', function (answer) {
+                        if (answer.startsWith('y')) {
+                            writeJrql(name, jrql);
+                            console.log('Added to test folder.');
+                            rmTodo(name);
+                            return next(rl);
+                        } else {
+                            if (answer.startsWith('t')) {
+                                addTodo(name);
+                                return next(rl);
+                            } else {
+                                parsed && console.log('Parsed SPARQL.js:\n' + stringify(parsed));
+                                unparsed && console.log('Generated SPARQL.js:\n' + stringify(unparsed));
+                                console.log('Have fun!');
+                                return rl.close();
+                            }
+                        }
+                    });
                 }
                 if (err) {
                     done(err);
                 } else {
-                    console.log('json-rql:');
-                    console.log(stringify(jrql));
+                    console.log('json-rql:\n' + stringify(jrql));
                     _jrql.toSparql(jrql, done);
                 }
             });

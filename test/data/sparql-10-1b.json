@@ -1,0 +1,17 @@
+{
+  "@context": {
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "ns": "http://example.org/ns#"
+  },
+  "@select": ["?title", "?price"],
+  "@where": [
+    {
+      "@graph": {"@id": "?x", "ns:discount": "?discount", "ns:price": "?p"},
+      "@bind": {"?price": {"@times": ["?p", {"@minus": [1, "?discount"]}]}}
+    },
+    {
+      "@graph": {"@id": "?x", "dc:title": "?title"},
+      "@filter": {"@lt": ["?price", 20]}
+    }
+  ]
+}
