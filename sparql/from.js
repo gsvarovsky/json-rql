@@ -12,7 +12,13 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
 
     function operationToJsonLd(operator, args, cb) {
         return _util.miniMap(args, expressionToJsonLd, pass(function (jsonldArgs) {
-            return cb(false, _.set({}, operator, jsonldArgs));
+            // Collapse any associative sub-clauses
+            if (_.get(_util.operators[operator], 'associative') && _.isArray(jsonldArgs)) {
+                jsonldArgs = _.flatMap(jsonldArgs, function (arg) {
+                    return _util.getOnlyKey(arg) === operator ? _.values(arg)[0] : arg;
+                });
+            }
+            return cb(false, _util.kvo(operator, jsonldArgs));
         }, cb));
     }
 
@@ -26,7 +32,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                 return cb(false, _util.unhideVars(jsonld[tempPredicate]));
             }, cb));
         } else if (expr.type === 'operation') {
-            operator = _util.operators[expr.operator];
+            operator = _.findKey(_util.operators, { sparql : expr.operator });
             return operator ? operationToJsonLd(operator, expr.args, cb) : cb('Unsupported operator: ' + expr.operator);
         } else if (expr.type === 'functionCall') {
             tempTriples = [{ subject : tempSubject, predicate : expr['function'], object : tempObject }];

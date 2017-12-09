@@ -16,7 +16,7 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         // Clone the json-ld to maintain our non-mutation contract, and capture any in-line filters
         jsonld = allowFilters ? _.cloneDeepWith(_.omit(jsonld, '@filter'), function (maybeFilter) {
             var key = _util.getOnlyKey(_.omit(maybeFilter, '@id'));
-            if (_util.isOperator(key) && (!maybeFilter['@id'] || _util.matchVar(maybeFilter['@id']))) {
+            if (_util.operators[key] && (!maybeFilter['@id'] || _util.matchVar(maybeFilter['@id']))) {
                 var variable = maybeFilter['@id'] || _util.newVariable();
                 filters.push(_util.kvo(key, [variable, maybeFilter[key]]));
                 return variable;
@@ -30,17 +30,24 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         }, cb));
     }
 
+    function operationAst(operator, args) {
+        return { type : 'operation', operator : operator, args : args };
+    }
+
     function expressionToSparqlJs(expr, cb/*(err, ast)*/) {
         var key = _util.getOnlyKey(expr);
         if (key) {
             var argTemplate = [_async.map, _.castArray(expr[key]), expressionToSparqlJs];
-            if (_util.isOperator(key)) {
+            if (_util.operators[key]) {
                 // An operator expression
-                return _util.ast({
-                    type : 'operation',
-                    operator : _.invert(_util.operators)[key],
-                    args : argTemplate
-                }, cb);
+                return _util.ast(operationAst(_util.operators[key].sparql, argTemplate), pass(function (operation) {
+                    if (_util.operators[key].associative) {
+                        while (operation.args.length > 2)
+                            operation.args = _.concat(operationAst(operation.operator, _.take(operation.args, 2)),
+                                _.drop(operation.args, 2));
+                    }
+                    return cb(false, operation);
+                }, cb));
             } else if (!key.startsWith('@')) {
                 // A function expression
                 return toTriples(_util.kvo(key, tempObject), false, pass(function (triples) {
