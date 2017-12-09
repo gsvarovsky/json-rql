@@ -58,19 +58,19 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
 
     function clausesToJsonLd(clauses, cb) {
         var byType = _.mapValues(_.groupBy(clauses, 'type'), function (homoClauses) {
-            return !_.isEmpty(homoClauses) && function (key, bumpy) {
-                    var clauses = _.map(homoClauses, key);
-                    return bumpy ? clauses : _.flatten(clauses);
-                }
+            return !_.isEmpty(homoClauses) && homoClauses;
         });
         return _util.ast({
-            '@graph' : byType.bgp ? [triplesToJsonLd, byType.bgp('triples')] : undefined,
+            '@graph' : byType.bgp ? [triplesToJsonLd, _.flatMap(byType.bgp, 'triples')] : undefined,
+            '@bind' : byType.bind ? [_async.mapValues, _.transform(byType.bind, function (bind, clause) {
+                bind[clause.variable] = clause.expression;
+            }, {}), function (v, k, cb) { return expressionToJsonLd(v, cb); }] : undefined,
             '@filter' : byType.filter ?
-                [_async.map, byType.filter('expression'), expressionToJsonLd] : undefined,
+                [_async.map, _.flatMap(byType.filter, 'expression'), expressionToJsonLd] : undefined,
             '@optional' : byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
-                [_util.miniMap, byType.optional('patterns', true), clausesToJsonLd] : undefined,
+                [_util.miniMap, _.map(byType.optional, 'patterns'), clausesToJsonLd] : undefined,
             '@union' : byType.union ?
-                [_async.map, _.map(byType.union('patterns'), function (clause) {
+                [_async.map, _.map(_.flatMap(byType.union, 'patterns'), function (clause) {
                     // Each 'group' is an array of patterns
                     return clause.type === 'group' ? clause.patterns : [clause];
                 }), clausesToJsonLd] : undefined

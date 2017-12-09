@@ -14,7 +14,7 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         !_.isArray(jsonld) || (jsonld = { '@graph' : jsonld });
         var filters = [];
         // Clone the json-ld to maintain our non-mutation contract, and capture any in-line filters
-        jsonld = allowFilters ? _.cloneDeepWith(_.omit(jsonld, '@filter'), function (maybeFilter) {
+        jsonld = allowFilters ? _.cloneDeepWith(_.omit(jsonld, '@filter', '@bind'), function (maybeFilter) {
             var key = _util.getOnlyKey(_.omit(maybeFilter, '@id'));
             if (_util.operators[key] && (!maybeFilter['@id'] || _util.matchVar(maybeFilter['@id']))) {
                 var variable = maybeFilter['@id'] || _util.newVariable();
@@ -76,6 +76,11 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
                     return cb(false, !_.isEmpty(triples) && { type : 'bgp', triples : triples, filters : filters });
                 }, cb));
             },
+            bind : clause['@bind'] ? function (cb) {
+                return _async.mapValues(clause['@bind'], function (expr, variable, cb) {
+                    return _util.ast({ type : 'bind', variable : variable, expression : [expressionToSparqlJs, expr] }, cb);
+                }, pass(function (binds) { cb(false, _.values(binds)); }, cb));
+            } : _async.constant(),
             filters : ['bgp', function ($, cb) {
                 // Combine in-line filters with explicit filters
                 var allFilters = _.compact(_.concat(_.get($.bgp, 'filters'), _.castArray(clause['@filter'])));

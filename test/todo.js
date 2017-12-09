@@ -97,17 +97,23 @@ function next(rl) {
                     } else if (isTestCase(name)) {
                         next(rl);
                     } else {
-                        rl.question('Look OK? (y/n) ', function (answer) {
-                            if (answer === 'y' || answer === 'yes') {
+                        rl.question('Look OK? (yes/todo/fix) ', function (answer) {
+                            if (answer.startsWith('y')) {
                                 writeJrql(name, jrql);
                                 console.log('Added to test folder.');
                                 rmTodo(name);
+                                next(rl);
                             } else {
                                 console.log('Parsed:');
                                 console.log(stringify(parsed));
-                                addTodo(name);
+                                if (answer.startsWith('t')) {
+                                    addTodo(name);
+                                    next(rl);
+                                } else {
+                                    console.log('Have fun!');
+                                    rl.close();
+                                }
                             }
-                            next(rl);
                         });
                     }
                 }
