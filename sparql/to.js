@@ -162,7 +162,8 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
             }, cb);
         }] : undefined,
         limit : jrql['@limit'],
-        offset : jrql['@offset']
+        offset : jrql['@offset'],
+        values : jrql['@values']
     }, pass(function (sparqljs) {
         try {
             return cb(false, sparqlGenerator.stringify(sparqljs), sparqljs);

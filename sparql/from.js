@@ -56,6 +56,11 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
         }, cb));
     }
 
+    function valuesToJsonLd(valuesAst) {
+        // SPARQL.js leaves undefined values for UNDEF variable values
+        return _.map(valuesAst.values, function (value) { return _.omitBy(value, _.isUndefined); });
+    }
+
     function clausesToJsonLd(clauses, cb) {
         var byType = _.groupBy(clauses, 'type');
         return _async.map(_.map(byType.group, 'patterns'), clausesToJsonLd, pass(function (groups) {
@@ -73,10 +78,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                         // Each 'group' is an array of patterns
                         return clause.type === 'group' ? clause.patterns : [clause];
                     }), clausesToJsonLd] : undefined,
-                '@values' : byType.values ? _.flatMap(byType.values, function (valuesAst) {
-                    // SPARQL.js leaves undefined values for UNDEF variable values
-                    return _.map(valuesAst.values, function (value) { return _.omitBy(value, _.isUndefined); });
-                }) : undefined
+                '@values' : byType.values ? _.flatMap(byType.values, valuesToJsonLd) : undefined
             }, pass(function (result) {
                 // In-line filters
                 if (result['@graph'] && result['@filter']) {
@@ -106,7 +108,8 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
             } : order.expression;
         }), expressionToJsonLd],
         '@limit' : parsed.limit,
-        '@offset' : parsed.offset
+        '@offset' : parsed.offset,
+        '@values' : parsed.values ? valuesToJsonLd(parsed) : undefined
     }, function (err, jsonRql) {
         return cb(err, jsonRql, parsed);
     });
