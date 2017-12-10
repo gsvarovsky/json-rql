@@ -1,0 +1,13 @@
+{
+  "@context": {
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "@vocab": "http://example.org/book/",
+    "ns": "http://example.org/ns#"
+  },
+  "@select": ["?book", "?title", "?price"],
+  "@values": [
+    {"?title": "\"SPARQL Tutorial\""},
+    {"?book": "http://example.org/book/book2"}
+  ],
+  "@where": {"@id": "?book", "ns:price": "?price", "dc:title": "?title"}
+}
