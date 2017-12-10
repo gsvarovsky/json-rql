@@ -144,6 +144,18 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         }, cb));
     }
 
+    function variableExpressionToSparqlJs(varExpr, cb/*(err, ast)*/) {
+        var variable = _util.getOnlyKey(varExpr);
+        if (variable) {
+            return _util.ast({
+                variable : variable,
+                expression : [expressionToSparqlJs, varExpr[variable]]
+            }, cb);
+        } else {
+            return cb(false, varExpr);
+        }
+    }
+
     var type = !_.isEmpty(_.pick(jrql, '@select', '@distinct', '@construct', '@describe')) ? 'query' :
         !_.isEmpty(_.pick(jrql, '@insert', '@delete')) ? 'update' : undefined;
 
@@ -152,7 +164,7 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         queryType : jrql['@select'] || jrql['@distinct'] ? 'SELECT' :
             jrql['@construct'] ? 'CONSTRUCT' : jrql['@describe'] ? 'DESCRIBE' : undefined,
         variables : jrql['@select'] || jrql['@distinct'] || jrql['@describe'] ?
-            _.castArray(jrql['@select'] || jrql['@distinct'] || jrql['@describe']) : undefined,
+            [_async.map, _.castArray(jrql['@select'] || jrql['@distinct'] || jrql['@describe']), variableExpressionToSparqlJs] : undefined,
         distinct : !!jrql['@distinct'] || undefined,
         template : jrql['@construct'] ? [toTriples, jrql['@construct'], false] : undefined,
         where : jrql['@where'] && type === 'query' ? [clauseToSparqlJs, jrql['@where']] : undefined,

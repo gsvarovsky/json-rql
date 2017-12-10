@@ -1,0 +1,13 @@
+{
+  "@context": {"@vocab": "http://books.example/"},
+  "@select": {"?totalPrice": {"@sum": "?lprice"}},
+  "@where": {
+    "@id": "?org",
+    "affiliates": {
+      "@id": "?auth",
+      "writesBook": {"@id": "?book", "price": "?lprice"}
+    }
+  },
+  "@groupBy": "?org",
+  "@having": {"@gt": [{"@sum": "?lprice"}, 10]}
+}

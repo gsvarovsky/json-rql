@@ -1,0 +1,6 @@
+{
+  "@context": {"@vocab": "http://data.example/"},
+  "@select": {"?avg": {"@avg": "?y"}},
+  "@where": {"@id": "?a", "x": "?x", "y": "?y"},
+  "@groupBy": "?x"
+}

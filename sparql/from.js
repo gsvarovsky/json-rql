@@ -59,6 +59,16 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
         }, cb));
     }
 
+    function variableExpressionToJsonLd(varExpr, cb) {
+        if (_.isObject(varExpr)) {
+            return expressionToJsonLd(varExpr.expression, pass(function (expr) {
+                return cb(false, _util.kvo(varExpr.variable, expr));
+            }, cb));
+        } else {
+            return cb(false, varExpr);
+        }
+    }
+
     function valuesToJsonLd(values) {
         // SPARQL.js leaves undefined values for UNDEF variable values
         return _.map(values, function (value) { return _.omitBy(value, _.isUndefined); });
@@ -99,9 +109,11 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     _util.ast({
         '@context' : !_.isEmpty(parsed.prefixes) ? _util.toContext(parsed.prefixes) : undefined,
         '@construct' : parsed.queryType === 'CONSTRUCT' ? [triplesToJsonLd, parsed.template] : undefined,
-        '@select' : parsed.queryType === 'SELECT' && !parsed.distinct ? _util.unArray(parsed.variables) : undefined,
+        '@select' : parsed.queryType === 'SELECT' && !parsed.distinct ?
+            [_util.miniMap, parsed.variables, variableExpressionToJsonLd] : undefined,
         '@describe' : parsed.queryType === 'DESCRIBE' ? _util.unArray(parsed.variables) : undefined,
-        '@distinct' : parsed.queryType === 'SELECT' && parsed.distinct ? _util.unArray(parsed.variables) : undefined,
+        '@distinct' : parsed.queryType === 'SELECT' && parsed.distinct ?
+            [_util.miniMap, parsed.variables, variableExpressionToJsonLd] : undefined,
         '@where' : parsed.where ? [clausesToJsonLd, parsed.where] : undefined,
         '@orderBy' : [_util.miniMap, _.map(parsed.order, function (order) {
             return order.descending ? {
