@@ -39,6 +39,9 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
             _util.toJsonLd(tempTriples, parsed.prefixes, pass(function (jsonld) {
                 return operationToJsonLd(_.findKey(jsonld, { '@id' : tempObject }), expr.args, cb);
             }, cb));
+        } else if (expr.type === 'aggregate') {
+            operator = _.findKey(_util.operators, { sparql : expr.aggregation });
+            return operator ? operationToJsonLd(operator, [expr.expression], cb) : cb('Unsupported aggregate: ' + expr.aggregation);
         } else {
             return cb('Unsupported expression: ' + expr.type || expr);
         }
@@ -56,9 +59,9 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
         }, cb));
     }
 
-    function valuesToJsonLd(valuesAst) {
+    function valuesToJsonLd(values) {
         // SPARQL.js leaves undefined values for UNDEF variable values
-        return _.map(valuesAst.values, function (value) { return _.omitBy(value, _.isUndefined); });
+        return _.map(values, function (value) { return _.omitBy(value, _.isUndefined); });
     }
 
     function clausesToJsonLd(clauses, cb) {
@@ -78,7 +81,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                         // Each 'group' is an array of patterns
                         return clause.type === 'group' ? clause.patterns : [clause];
                     }), clausesToJsonLd] : undefined,
-                '@values' : byType.values ? _.flatMap(byType.values, valuesToJsonLd) : undefined
+                '@values' : byType.values ? valuesToJsonLd(_.flatMap(byType.values, 'values')) : undefined
             }, pass(function (result) {
                 // In-line filters
                 if (result['@graph'] && result['@filter']) {
@@ -107,9 +110,11 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                 args : [order.expression]
             } : order.expression;
         }), expressionToJsonLd],
+        '@groupBy' : parsed.group ? [_util.miniMap, _.map(parsed.group, 'expression'), expressionToJsonLd] : undefined,
+        '@having' : parsed.having ? [_util.miniMap, parsed.having, expressionToJsonLd] : undefined,
         '@limit' : parsed.limit,
         '@offset' : parsed.offset,
-        '@values' : parsed.values ? valuesToJsonLd(parsed) : undefined
+        '@values' : parsed.values ? valuesToJsonLd(parsed.values) : undefined
     }, function (err, jsonRql) {
         return cb(err, jsonRql, parsed);
     });

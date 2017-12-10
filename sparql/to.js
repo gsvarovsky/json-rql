@@ -40,14 +40,23 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
             var argTemplate = [_async.map, _.castArray(expr[key]), expressionToSparqlJs];
             if (_util.operators[key]) {
                 // An operator expression
-                return _util.ast(operationAst(_util.operators[key].sparql, argTemplate), pass(function (operation) {
-                    if (_util.operators[key].associative) {
-                        while (operation.args.length > 2)
-                            operation.args = _.concat(operationAst(operation.operator, _.take(operation.args, 2)),
-                                _.drop(operation.args, 2));
-                    }
-                    return cb(false, operation);
-                }, cb));
+                if (_util.operators[key].aggregation) {
+                    return _util.ast({
+                        type : 'aggregate',
+                        aggregation : _util.operators[key].sparql,
+                        expression : [expressionToSparqlJs, expr[key]],
+                        distinct : false // TODO what is this anyway
+                    }, cb);
+                } else {
+                    return _util.ast(operationAst(_util.operators[key].sparql, argTemplate), pass(function (operation) {
+                        if (_util.operators[key].associative) {
+                            while (operation.args.length > 2)
+                                operation.args = _.concat(operationAst(operation.operator, _.take(operation.args, 2)),
+                                    _.drop(operation.args, 2));
+                        }
+                        return cb(false, operation);
+                    }, cb));
+                }
             } else if (!key.startsWith('@')) {
                 // A function expression
                 return toTriples(_util.kvo(key, tempObject), false, pass(function (triples) {
@@ -161,6 +170,10 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
                 descending : expr['@desc'] ? true : undefined
             }, cb);
         }] : undefined,
+        group : jrql['@groupBy'] ? [_async.map, _.castArray(jrql['@groupBy']), function (expr, cb) {
+            return _util.ast({ expression : [expressionToSparqlJs, expr] }, cb);
+        }] : undefined,
+        having : jrql['@having'] ? [_async.map, _.castArray(jrql['@having']), expressionToSparqlJs] : undefined,
         limit : jrql['@limit'],
         offset : jrql['@offset'],
         values : jrql['@values']

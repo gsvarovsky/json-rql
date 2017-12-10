@@ -19,6 +19,13 @@
   "@str": { "sparql": "str" },
   "@lang": { "sparql": "lang" },
   "@langmatches": { "sparql": "langmatches" },
+  "@count": { "sparql": "count", "aggregation": true },
+  "@sum": { "sparql": "sum", "aggregation": true },
+  "@min": { "sparql": "min", "aggregation": true },
+  "@max": { "sparql": "max", "aggregation": true },
+  "@avg": { "sparql": "avg", "aggregation": true },
+  "@groupConcat": { "sparql": "group_concat", "aggregation": true },
+  "@sample": { "sparql": "sample", "aggregation": true },
   "@desc": { "sparql": "descending" },
   "@asc": { "sparql": "ascending" }
 }
