@@ -1,0 +1,10 @@
+{
+  "@context": {"@vocab": "http://example.com/data/#"},
+  "@select": [
+    "?g",
+    {"?avg": {"@avg": "?p"}},
+    {"?c": {"@divide": [{"@plus": [{"@min": "?p"}, {"@max": "?p"}]}, 2]}}
+  ],
+  "@where": {"@id": "?g", "p": "?p"},
+  "@groupBy": "?g"
+}

@@ -1,0 +1,7 @@
+{
+  "@context": {"@vocab": "http://data.example/"},
+  "@select": {"?asize": {"@avg": "?size"}},
+  "@where": {"@id": "?x", "size": "?size"},
+  "@groupBy": "?x",
+  "@having": {"@gt": [{"@avg": "?size"}, 10]}
+}

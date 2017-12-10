@@ -1,0 +1,6 @@
+{
+  "@context": {"@vocab": "http://example.com/data/#"},
+  "@select": ["?x", {"?min": {"@times": [{"@min": "?y"}, 2]}}],
+  "@where": {"@id": "?x", "p": "?y", "q": "?z"},
+  "@groupBy": ["?x", {"@str": "?z"}]
+}
