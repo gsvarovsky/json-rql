@@ -36,7 +36,7 @@ For translation into SPARQL, a **json-rql** query typically requires a `@select`
 
 SPARQL language keywords supported so far are:
 
-`SELECT`, `CONSTRUCT`, `DESCRIBE`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `LIMIT`, `OFFSET`
+`SELECT`, `CONSTRUCT`, `DESCRIBE`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `GROUP BY`, `HAVING`, `LIMIT`, `OFFSET`
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript
