@@ -32,11 +32,9 @@ require('json-rql').toSparql({
 });
 ```
 
-For translation into SPARQL, a **json-rql** query typically requires a `@select`, `@construct` or `@describe` clause, and a `@context` to provide the mapping between terms and IRIs. (When used in an API, these elements will often derive from the call context.)
+For translation into SPARQL, a **json-rql** query typically requires a `@select`, `@construct` or `@describe` clause, and a `@context` to provide the mapping between terms and IRIs. When used in an API, these elements will often derive from the call context.
 
-SPARQL language keywords supported so far are:
-
-`SELECT`, `CONSTRUCT`, `DESCRIBE`, `WHERE`, `FILTER`, `OPTIONAL`, `UNION`, `ORDER BY`, `GROUP BY`, `HAVING`, `LIMIT`, `OFFSET`
+SPARQL language keywords supported so far can be found in [lib/keywords.json](/lib/keywords.json).
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript

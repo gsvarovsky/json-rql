@@ -1,0 +1,12 @@
+{
+  "@select": ["?y", "?minName"],
+  "@where": [
+    {
+      "@select": ["?y", {"?minName": {"@min": "?name"}}],
+      "@where": {"@id": "?y", "name": "?name"},
+      "@groupBy": "?y"
+    },
+    {"@id": "http://people.example/alice", "knows": "?y"}
+  ],
+  "@context": {"@vocab": "http://people.example/"}
+}

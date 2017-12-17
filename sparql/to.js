@@ -78,16 +78,20 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     function clauseToSparqlJs(clause, cb/*(err, ast)*/) {
         if (_.isArray(clause)) {
             return _async.reduce(clause, { ngItems : [], patterns : [] }, function ($, item, cb) {
-                var group = _.pick(item, '@graph', '@bind', '@filter', '@union', '@optional');
-                if (_.isEmpty(group)) {
+                var group = _.pick(item, _.keys(_util.groupPatterns)), query = _.pick(item, _.keys(_util.clauses));
+                if (_.isEmpty(group) && _.isEmpty(query)) {
                     return cb(false, _.set($, 'ngItems', $.ngItems.concat(item)));
                 } else {
                     // Bank any non-group patterns gathered so far
                     return groupToSparqlJs($.ngItems, pass(function (ngPatterns) {
-                        // Create a group pattern
-                        return _util.ast({ type : 'group', patterns : [groupToSparqlJs, group] }, pass(function (gp) {
-                            return cb(false, { ngItems : [], patterns : $.patterns.concat(ngPatterns).concat(gp) });
-                        }, cb));
+                        var addPattern = pass(function (pattern) {
+                            return cb(false, { ngItems : [], patterns : $.patterns.concat(ngPatterns).concat(pattern) });
+                        }, cb);
+                        // Create a group pattern or a query pattern
+                        return !_.isEmpty(group) ? _util.ast({
+                            type : 'group',
+                            patterns : [groupToSparqlJs, group]
+                        }, addPattern) : queryToSparqlJs(query, addPattern);
                     }, cb));
                 }
             }, pass(function ($) {
@@ -105,6 +109,7 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
     }
 
     function groupToSparqlJs(clause, cb/*(err, ast)*/) {
+        // noinspection JSUnusedGlobalSymbols
         return _async.auto({
             bgp : function (cb) {
                 // Try to turn the whole clause into a BGP
@@ -156,44 +161,48 @@ module.exports = function toSparql(jrql, cb/*(err, sparql, parsed)*/) {
         }
     }
 
-    var type = !_.isEmpty(_.pick(jrql, '@select', '@distinct', '@construct', '@describe')) ? 'query' :
-        !_.isEmpty(_.pick(jrql, '@insert', '@delete')) ? 'update' : undefined;
+    function queryToSparqlJs(query, cb/*(err, ast)*/) {
+        var type = !_.isEmpty(_.pick(query, '@select', '@distinct', '@construct', '@describe')) ? 'query' :
+            !_.isEmpty(_.pick(query, '@insert', '@delete')) ? 'update' : undefined;
 
-    return type ? _util.ast({
-        type : type,
-        queryType : jrql['@select'] || jrql['@distinct'] ? 'SELECT' :
-            jrql['@construct'] ? 'CONSTRUCT' : jrql['@describe'] ? 'DESCRIBE' : undefined,
-        variables : jrql['@select'] || jrql['@distinct'] || jrql['@describe'] ?
-            [_async.map, _.castArray(jrql['@select'] || jrql['@distinct'] || jrql['@describe']), variableExpressionToSparqlJs] : undefined,
-        distinct : !!jrql['@distinct'] || undefined,
-        template : jrql['@construct'] ? [toTriples, jrql['@construct'], false] : undefined,
-        where : jrql['@where'] && type === 'query' ? [clauseToSparqlJs, jrql['@where']] : undefined,
-        updates : type === 'update' ? function (cb) {
-            return _util.ast({
-                updateType : 'insertdelete',
-                insert : jrql['@insert'] ? [clauseToSparqlJs, jrql['@insert']] : [],
-                delete : jrql['@delete'] ? [clauseToSparqlJs, jrql['@delete']] : [],
-                where : jrql['@where'] ? [clauseToSparqlJs, jrql['@where']] : []
-            }, _.castArray, cb);
-        } : undefined,
-        order : jrql['@orderBy'] ? [_async.map, _.castArray(jrql['@orderBy']), function (expr, cb) {
-            return _util.ast({
-                expression : [expressionToSparqlJs, expr['@asc'] || expr['@desc'] || expr],
-                descending : expr['@desc'] ? true : undefined
-            }, cb);
-        }] : undefined,
-        group : jrql['@groupBy'] ? [_async.map, _.castArray(jrql['@groupBy']), function (expr, cb) {
-            return _util.ast({ expression : [expressionToSparqlJs, expr] }, cb);
-        }] : undefined,
-        having : jrql['@having'] ? [_async.map, _.castArray(jrql['@having']), expressionToSparqlJs] : undefined,
-        limit : jrql['@limit'],
-        offset : jrql['@offset'],
-        values : jrql['@values']
-    }, pass(function (sparqljs) {
+        return type ? _util.ast({
+            type : type,
+            queryType : query['@select'] || query['@distinct'] ? 'SELECT' :
+                query['@construct'] ? 'CONSTRUCT' : query['@describe'] ? 'DESCRIBE' : undefined,
+            variables : query['@select'] || query['@distinct'] || query['@describe'] ?
+                [_async.map, _.castArray(query['@select'] || query['@distinct'] || query['@describe']), variableExpressionToSparqlJs] : undefined,
+            distinct : !!query['@distinct'] || undefined,
+            template : query['@construct'] ? [toTriples, query['@construct'], false] : undefined,
+            where : query['@where'] && type === 'query' ? [clauseToSparqlJs, query['@where']] : undefined,
+            updates : type === 'update' ? function (cb) {
+                return _util.ast({
+                    updateType : 'insertdelete',
+                    insert : query['@insert'] ? [clauseToSparqlJs, query['@insert']] : [],
+                    delete : query['@delete'] ? [clauseToSparqlJs, query['@delete']] : [],
+                    where : query['@where'] ? [clauseToSparqlJs, query['@where']] : []
+                }, _.castArray, cb);
+            } : undefined,
+            order : query['@orderBy'] ? [_async.map, _.castArray(query['@orderBy']), function (expr, cb) {
+                return _util.ast({
+                    expression : [expressionToSparqlJs, expr['@asc'] || expr['@desc'] || expr],
+                    descending : expr['@desc'] ? true : undefined
+                }, cb);
+            }] : undefined,
+            group : query['@groupBy'] ? [_async.map, _.castArray(query['@groupBy']), function (expr, cb) {
+                return _util.ast({ expression : [expressionToSparqlJs, expr] }, cb);
+            }] : undefined,
+            having : query['@having'] ? [_async.map, _.castArray(query['@having']), expressionToSparqlJs] : undefined,
+            limit : query['@limit'],
+            offset : query['@offset'],
+            values : query['@values']
+        }, cb) : cb('Unsupported type');
+    }
+
+    return queryToSparqlJs(jrql, pass(function (sparqljs) {
         try {
             return cb(false, sparqlGenerator.stringify(sparqljs), sparqljs);
         } catch (e) {
             return cb(e, null, sparqljs);
         }
-    }, cb)) : cb('Unsupported type');
+    }, cb));
 };
