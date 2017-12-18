@@ -1,7 +1,6 @@
+[![npm version](https://badge.fury.io/js/json-rql.svg)](https://badge.fury.io/js/json-rql)
 [![Build Status](https://travis-ci.org/gsvarovsky/json-rql.svg?branch=master)](https://travis-ci.org/gsvarovsky/json-rql)
-[![GitHub stars](https://img.shields.io/github/stars/gsvarovsky/json-rql.svg)](https://github.com/gsvarovsky/json-rql/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/gsvarovsky/json-rql.svg)](https://github.com/gsvarovsky/json-rql/issues)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/gsvarovsky/json-rql/master/LICENSE)
+[![star this repo](http://githubbadges.com/star.svg?user=gsvarovsky&repo=json-rql&style=flat)](https://github.com/gsvarovsky/json-rql)
 [![Try json-rql on RunKit](https://badge.runkitcdn.com/json-rql.svg)](https://npm.runkit.com/json-rql)
 # json-rql
 _JSON Resource Query Language, for simple, consistent query APIs_
