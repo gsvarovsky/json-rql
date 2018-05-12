@@ -64,11 +64,12 @@ require('json-rql').toSparql({
 
 See the tests (especially the JSON files in test/data) for more examples.
 
-## Useful Links
+## Biblio
 * [JSON-LD Home](http://json-ld.org/)
 * [JSON-LD Specification](http://json-ld.org/spec/latest/json-ld/)
 * [SPARQL](https://www.w3.org/TR/rdf-sparql-query)
 * [SPARQL.js](https://github.com/RubenVerborgh/SPARQL.js)
+* [SPARQL Transformer](https://github.com/D2KLab/sparql-transformer) (a similar approach, "... writing in a single file the query and the expected output in JSON.")
 * [JSON Schema](http://json-schema.org/)
 * [Joi](https://github.com/hapijs/joi)
 * [Jackson](https://github.com/FasterXML/jackson)
