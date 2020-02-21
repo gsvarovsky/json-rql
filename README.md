@@ -5,7 +5,7 @@
 # json-rql
 _JSON Resource Query Language, for simple, consistent query APIs_
 
-This repository and library primarily presents a _convention_ for expressing queries against structured resources, using JSON. It is intended to help application developers resolve the tensions between _expressibility_ and _simplicity_, and between _agility_ and _future-proofing_, in API design. It is based on [JSON-LD](https://json-ld.org).
+This repository and library presents a _convention_ for expressing queries against structured resources, using JSON. It helps resolve the tensions between _expressibility_ and _simplicity_, and between _agility_ and _future-proofing_, in API design. It is based on [JSON-LD](https://json-ld.org).
 
 A simple example query:
 ```json
@@ -15,12 +15,12 @@ A simple example query:
 1. It's JSON: straightforward to construct in code, manipulate and serialize, and also to _constrain_. Use standard JSON tooling to limit your API to the queries that your back-end has been designed and tested for.
 2. It's SPARQL: _in context_, all queries can be translated to the W3C standard language for directed, labeled graph data. This means that your API can be extended to cover future query requirements, without breaking changes.
 
-Please see [the wiki](https://github.com/gsvarovsky/json-rql/wiki) for a narrative explanation of these design choices, and for a walkthrough of common query types.
+Please see [the wiki](https://github.com/gsvarovsky/json-rql/wiki) for an explanation of these design choices, and for a walkthrough of common query types.
 
 **[Feedback](https://github.com/gsvarovsky/json-rql/issues) and contributions welcome!**
 
 ## SPARQL Translation
-This library serves to demonstrate and test interconvertibility of **json-rql** and SPARQL. It can be used directly in a Javascript environment to translate queries, for example in an API implementation where the back-end supports SPARQL.
+This library demonstrates and tests interconvertibility of **json-rql** and SPARQL. It can be used directly in a Javascript environment to translate queries, for example in an API implementation where the back-end supports SPARQL.
 
 ```javascript
 require('json-rql').toSparql({
