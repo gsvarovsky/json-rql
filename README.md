@@ -22,6 +22,8 @@ Please see [the wiki](https://github.com/gsvarovsky/json-rql/wiki) for an explan
 ## SPARQL Translation
 This library demonstrates and tests interconvertibility of **json-rql** and SPARQL. It can be used directly in a Javascript environment to translate queries, for example in an API implementation where the back-end supports SPARQL.
 
+*Requires a modern browser / Node.js v10+*
+
 ```javascript
 require('json-rql').toSparql({
   '@select' : '?s',
