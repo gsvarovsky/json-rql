@@ -7,8 +7,8 @@
   "@select": ["?book", "?title", "?price"],
   "@where": {
     "@values": [
-      {"?title": "\"SPARQL Tutorial\""},
-      {"?book": "http://example.org/book/book2"}
+      {"?title": "SPARQL Tutorial"},
+      {"?book": {"@id": "http://example.org/book/book2"}}
     ],
     "@graph": {"@id": "?book", "ns:price": "?price", "dc:title": "?title"}
   }

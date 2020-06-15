@@ -8,7 +8,9 @@
   },
   "scripts": {
     "test": "mocha test",
-    "unit": "mocha"
+    "unit": "mocha",
+    "postinstall": "node test/postinstall.js",
+    "todo": "node test/todo.js"
   },
   "repository": {
     "type": "git",
@@ -28,19 +30,20 @@
   },
   "homepage": "https://github.com/gsvarovsky/json-rql#readme",
   "dependencies": {
-    "async": "^2.1.1",
+    "async": "^2.6.3",
     "gen-id": "^0.1.1",
-    "jsonld": "^0.4.11",
-    "lodash": "^4.16.4",
-    "n3": "^0.11.0",
+    "jsonld": "^3.1.1",
+    "lodash": "^4.17.15",
+    "n3": "^1.4.0",
     "pass-error": "^0.1.2",
-    "sparqljs": "^1.1.4"
+    "sparqljs": "^3.0.1"
   },
   "devDependencies": {
-    "chai": "^4.1.0",
-    "json-stringify-pretty-compact": "^1.0.2",
-    "mocha": "^3.1.0",
-    "object-hash": "^1.1.4"
+    "chai": "^4.2.0",
+    "download-git-repo": "^3.0.2",
+    "json-stringify-pretty-compact": "^2.0.0",
+    "mocha": "^8.0.1",
+    "object-hash": "^2.0.3"
   },
   "runkitExampleFilename": "example.js"
 }

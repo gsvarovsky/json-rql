@@ -3,9 +3,9 @@ var _ = require('lodash'),
     _async = require('async'),
     pass = require('pass-error'),
     sparqlParser = new (require('sparqljs').Parser)(),
-    tempSubject = 'http://json-rql.org/subject',
-    tempPredicate = 'http://json-rql.org/predicate',
-    tempObject = 'http://json-rql.org/object';
+    tempSubject = { termType: 'NamedNode', value: 'http://json-rql.org/subject' },
+    tempPredicate = { termType: 'NamedNode', value: 'http://json-rql.org/predicate' },
+    tempObject = { termType: 'NamedNode', value: 'http://json-rql.org/object' };
 
 module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     var parsed = sparqlParser.parse(sparql), prefixes = parsed.prefixes;
@@ -24,12 +24,12 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
 
     function expressionToJsonLd(expr, cb/*(err, jsonld)*/) {
         var operator, tempTriples;
-        if (_.isArray(expr) || !_.isObject(expr)) {
+        if (_.isArray(expr) || _util.isTerm(expr)) {
             tempTriples = _.map(_.castArray(expr), function (e) {
                 return { subject : tempSubject, predicate : tempPredicate, object : _util.hideVar(e) }
             });
             return _util.toJsonLd(tempTriples, prefixes, pass(function (jsonld) {
-                return cb(false, _util.unhideVars(jsonld[tempPredicate]));
+                return cb(false, _util.unhideVars(jsonld[tempPredicate.value]));
             }, cb));
         } else if (expr.type === 'operation') {
             operator = _.findKey(_util.operators, { sparql : expr.operator });
@@ -37,7 +37,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
         } else if (expr.type === 'functionCall') {
             tempTriples = [{ subject : tempSubject, predicate : expr['function'], object : tempObject }];
             _util.toJsonLd(tempTriples, prefixes, pass(function (jsonld) {
-                return operationToJsonLd(_.findKey(jsonld, { '@id' : tempObject }), expr.args, cb);
+                return operationToJsonLd(_.findKey(jsonld, { '@id' : tempObject.value }), expr.args, cb);
             }, cb));
         } else if (expr.type === 'aggregate') {
             operator = _.findKey(_util.operators, { sparql : expr.aggregation });
@@ -45,6 +45,10 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
         } else {
             return cb('Unsupported expression: ' + expr.type || expr);
         }
+    }
+
+    function transformExprToJsonLd(v, _k, cb) {
+        return expressionToJsonLd(v, cb);
     }
 
     function triplesToJsonLd(triples, cb) {
@@ -60,18 +64,22 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
     }
 
     function variableExpressionToJsonLd(varExpr, cb) {
-        if (_.isObject(varExpr)) {
+        if (_util.isTerm(varExpr, 'Variable')) {
+            return _async.nextTick(cb, false, _util.varExpr(varExpr.value));
+        } else if (_util.isTerm(varExpr, 'Wildcard')) {
+            return _async.nextTick(cb, false, '*');
+        } else if (varExpr.expression) {
             return expressionToJsonLd(varExpr.expression, pass(function (expr) {
-                return cb(false, _util.kvo(varExpr.variable, expr));
+                return cb(false, _util.kvo(_util.varExpr(varExpr.variable.value), expr));
             }, cb));
         } else {
-            return _async.nextTick(cb, false, varExpr);
+            cb('Unrecognised variable expression type ' + varExpr);
         }
     }
 
-    function valuesToJsonLd(values) {
+    function valuesToJsonLd(varValues, cb) {
         // SPARQL.js leaves undefined values for UNDEF variable values
-        return _.map(values, function (value) { return _.omitBy(value, _.isUndefined); });
+        return _async.mapValues(_.omitBy(varValues, _.isUndefined), transformExprToJsonLd, cb);
     }
 
     function groupsToJsonLd(groups, cb) {
@@ -87,9 +95,9 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                 return _util.ast({
                     '@graph' : $.byType.bgp ? [triplesToJsonLd, _.flatMap($.byType.bgp, 'triples')] : undefined,
                     '@bind' : $.byType.bind ? [_async.mapValues, _.transform($.byType.bind, function (bind, clause) {
-                        bind[clause.variable] = clause.expression;
-                    }, {}), function (v, k, cb) { return expressionToJsonLd(v, cb); }] : undefined,
-                    '@filter' : $.byType.filter ?
+                        bind[_util.varExpr(clause.variable.value)] = clause.expression;
+                    }, {}), transformExprToJsonLd] : undefined,
+                    '@filter' : $.byType.filter ? // Filter stays arrayed until the ast callback
                         [_async.map, _.flatMap($.byType.filter, 'expression'), expressionToJsonLd] : undefined,
                     '@optional' : $.byType.optional ? // OPTIONAL(a. b) is different from OPTIONAL(a) OPTIONAL(b)
                         [_util.miniMap, _.map($.byType.optional, 'patterns'), groupsToJsonLd] : undefined,
@@ -98,12 +106,16 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
                             // Each 'group' is an array of patterns
                             return clause.type === 'group' ? clause.patterns : [clause];
                         }), groupsToJsonLd] : undefined,
-                    '@values' : $.byType.values ? valuesToJsonLd(_.flatMap($.byType.values, 'values')) : undefined
+                    '@values': $.byType.values ?
+                        [_async.map, _.flatMap($.byType.values, 'values'), valuesToJsonLd] : undefined
                 }, pass(function (patterns) {
                     // In-line filters
-                    if (patterns['@graph'] && patterns['@filter']) {
-                        patterns['@graph'] = _util.inlineFilters(patterns['@graph'], patterns['@filter']);
-                        _.isEmpty(patterns['@filter'] = _util.unArray(patterns['@filter'])) && delete patterns['@filter'];
+                    if (patterns['@filter']) {
+                        if (patterns['@graph'])
+                            patterns['@graph'] = _util.inlineFilters(patterns['@graph'], patterns['@filter']);
+                        patterns['@filter'] = _util.unArray(patterns['@filter']);
+                        if (_.isEmpty(patterns['@filter']))
+                            delete patterns['@filter'];
                     }
                     // If a singleton graph is the only thing we have, flatten it
                     if (_util.getOnlyKey(patterns) === '@graph')
@@ -121,7 +133,8 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
             '@construct' : query.queryType === 'CONSTRUCT' ? [triplesToJsonLd, query.template] : undefined,
             '@select' : query.queryType === 'SELECT' && !query.distinct ?
                 [_util.miniMap, query.variables, variableExpressionToJsonLd] : undefined,
-            '@describe' : query.queryType === 'DESCRIBE' ? _util.unArray(query.variables) : undefined,
+            '@describe': query.queryType === 'DESCRIBE' ?
+                [_util.miniMap, query.variables, variableExpressionToJsonLd] : undefined,
             '@distinct' : query.queryType === 'SELECT' && query.distinct ?
                 [_util.miniMap, query.variables, variableExpressionToJsonLd] : undefined,
             '@where' : query.where ? [groupsToJsonLd, query.where] : undefined,
@@ -136,7 +149,7 @@ module.exports = function toJsonRql(sparql, cb/*(err, jsonRql, parsed)*/) {
             '@having' : query.having ? [_util.miniMap, query.having, expressionToJsonLd] : undefined,
             '@limit' : query.limit,
             '@offset' : query.offset,
-            '@values' : query.values ? valuesToJsonLd(query.values) : undefined
+            '@values': query.values ? [_async.map, query.values, valuesToJsonLd] : undefined
         }, function (err, jsonRql) {
             return cb(err, jsonRql, query);
         });

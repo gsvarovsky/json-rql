@@ -3,13 +3,22 @@ var _ = require('lodash'),
     expect = require('chai').expect;
 
 function toComparableAst(ast) {
-    return _.isObject(ast) ? _(ast).omit('prefixes').transform(function (ast, v, k) {
-        return _.set(ast, k, ({
-            triples : toComparableSet,
-            template : toComparableSet,
-            where : toComparableClause
-        }[k] || toComparableAst)(v));
-    }).value() : ast;
+    if (_.isObject(ast)) {
+        ast = _(ast).omit('prefixes').transform(function (ast, v, k) {
+            return _.set(ast, k, ({
+                triples: toComparableSet,
+                patterns: toComparableSet,
+                template: toComparableSet,
+                where: toComparableClause
+            }[k] || toComparableAst)(v));
+        }).value();
+        // If I'm a group with only one thing in it, collapse me
+        if (ast.type === 'group' &&
+            _.isEmpty(_.omit(ast, ['type', 'patterns'])) &&
+            _.size(ast.patterns) === 1)
+            ast = _.first(_.values(ast.patterns));
+    }
+    return ast;
 }
 
 function toComparableSet(array) {

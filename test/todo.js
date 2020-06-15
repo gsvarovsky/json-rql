@@ -4,7 +4,7 @@ var _ = require('lodash'),
     _jrql = require('../index'),
     readline = require('readline'),
     stringify = require('json-stringify-pretty-compact'),
-    sparqlFolder = _path.join(__dirname, '../node_modules/sparqljs/queries'),
+    sparqlFolder = _path.join(__dirname, '../node_modules/sparqljs-src/queries'),
     dataFolder = _path.join(__dirname, 'data');
 
 function exampleNames() {

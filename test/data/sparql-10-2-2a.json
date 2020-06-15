@@ -7,8 +7,8 @@
   "@select": ["?book", "?title", "?price"],
   "@where": {
     "@values": [
-      {"?book": "http://example.org/book/book1"},
-      {"?book": "http://example.org/book/book3"}
+      {"?book": {"@id": "http://example.org/book/book1"}},
+      {"?book": {"@id": "http://example.org/book/book3"}}
     ],
     "@graph": {"@id": "?book", "ns:price": "?price", "dc:title": "?title"}
   }

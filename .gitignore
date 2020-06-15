@@ -40,3 +40,9 @@ jspm_packages
 .idea/
 json-rql.iml
 test/data/sparql
+
+# Apple
+.DS_Store
+
+# VS Code
+.vscode/

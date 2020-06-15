@@ -1,5 +1,5 @@
 {
   "@context": {"foaf": "http://xmlns.com/foaf/0.1/"},
   "@select": ["?name", "?mbox"],
-  "@where": {"@id": "?x", "foaf:mbox": "?mbox", "foaf:name": "?name"}
+  "@where": [[], {"@id": "?x", "foaf:mbox": "?mbox", "foaf:name": "?name"}]
 }
