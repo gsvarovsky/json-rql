@@ -3,14 +3,19 @@
   "version": "0.3.2",
   "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
   "main": "index.js",
+  "types": "index.ts",
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "clean": "rm -rf _site",
+    "build": "run-s clean test doc gen-schema",
     "test": "mocha test",
     "unit": "mocha",
     "postinstall": "node test/postinstall.js",
-    "todo": "node test/todo.js"
+    "todo": "node test/todo.js",
+    "gen-schema": "typescript-json-schema index.ts \"*\" -o _site/schema.json --id \"https://json-rql.org/schema.json\"",
+    "doc": "typedoc index.ts"
   },
   "repository": {
     "type": "git",
@@ -30,6 +35,7 @@
   },
   "homepage": "https://github.com/gsvarovsky/json-rql#readme",
   "dependencies": {
+    "@types/jsonld": "^1.5.1",
     "async": "^2.6.3",
     "gen-id": "^0.1.1",
     "jsonld": "^3.1.1",
@@ -43,7 +49,10 @@
     "download-git-repo": "^3.0.2",
     "json-stringify-pretty-compact": "^2.0.0",
     "mocha": "^8.0.1",
-    "object-hash": "^2.0.3"
+    "npm-run-all": "^4.1.5",
+    "object-hash": "^2.0.3",
+    "typedoc": "^0.17.7",
+    "typescript-json-schema": "^0.42.0"
   },
   "runkitExampleFilename": "sparql/example.js"
 }

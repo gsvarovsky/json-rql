@@ -46,3 +46,6 @@ test/data/sparql
 
 # VS Code
 .vscode/
+
+# Site output
+_site/

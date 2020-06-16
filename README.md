@@ -2,17 +2,17 @@
 [![Build Status](https://travis-ci.org/gsvarovsky/json-rql.svg?branch=master)](https://travis-ci.org/gsvarovsky/json-rql)
 [![Try json-rql on RunKit](https://badge.runkitcdn.com/json-rql.svg)](https://npm.runkit.com/json-rql)
 # json-rql
-_JSON Resource Query Language, for simple, consistent query APIs_
+*JSON Resource Query Language, for simple, consistent query APIs*
 
-This repository and library presents a _convention_ for expressing queries against structured resources, using JSON. It helps resolve the tensions between _expressibility_ and _simplicity_, and between _agility_ and _future-proofing_, in API design. It is based on [JSON-LD](https://json-ld.org).
+This repository and library presents a *convention* for expressing queries against structured resources, using JSON. It helps resolve the tensions between *expressibility* and *simplicity*, and between *agility* and *future-proofing*, in API design. It is based on [JSON-LD](https://json-ld.org).
 
 A simple example query:
 ```json
 { "@where" : { "@type" : "Person", "name" : { "@contains" : "Fred" } } }
 ```
 
-1. It's JSON: straightforward to construct in code, manipulate and serialize, and also to _constrain_. Use standard JSON tooling to limit your API to the queries that your back-end has been designed and tested for.
-2. It's SPARQL: _in context_, all queries can be translated to the W3C standard language for directed, labeled graph data. This means that your API can be extended to cover future query requirements, without breaking changes.
+1. It's JSON: straightforward to construct in code, manipulate and serialize, and also to *constrain*. Use standard JSON tooling to limit your API to the queries that your back-end has been designed and tested for.
+2. It's SPARQL: *in context*, all queries can be translated to the W3C standard language for directed, labeled graph data. This means that your API can be extended to cover future query requirements, without breaking changes.
 
 Please see [the wiki](https://github.com/gsvarovsky/json-rql/wiki) for an explanation of these design choices, and for a walkthrough of common query types.
 
@@ -34,7 +34,7 @@ require('json-rql').toSparql({
 
 For translation into SPARQL, a **json-rql** query typically requires a `@select`, `@construct` or `@describe` clause, and a `@context` to provide the mapping between terms and IRIs. When used in an API, these elements will often derive from the call context.
 
-SPARQL language keywords supported so far can be found in [lib/keywords.json](/lib/keywords.json).
+SPARQL language keywords supported so far can be found in [keywords.json](keywords.json).
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript
