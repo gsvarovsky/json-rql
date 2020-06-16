@@ -24,7 +24,7 @@ describe('JSON-RQL', function () {
                     done();
                 }
             };
-            require('../example');
+            require('../sparql/example');
         } catch (e) {
             restoreLog();
         } finally {

@@ -1,4 +1,4 @@
-var _util = require('../lib/util'),
+var _util = require('../sparql/util'),
     expect = require('chai').expect;
 
 describe('AST utilities', function () {

@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-    _util = require('../lib/util'),
+    _util = require('./util'),
     _async = require('async'),
     pass = require('pass-error'),
     sparqlParser = new (require('sparqljs').Parser)(),
