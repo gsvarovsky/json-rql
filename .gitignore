@@ -47,5 +47,6 @@ test/data/sparql
 # VS Code
 .vscode/
 
-# Site output
+# Generated output
+spec/schema.json
 _site/
