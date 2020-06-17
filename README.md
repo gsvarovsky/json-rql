@@ -1,25 +1,40 @@
-[![npm version](https://badge.fury.io/js/json-rql.svg)](https://badge.fury.io/js/json-rql)
+[![licence](https://img.shields.io/github/license/gsvarovsky/json-rql)](https://github.com/gsvarovsky/json-rql/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/json-rql)](https://www.npmjs.com/package/json-rql)
 [![Build Status](https://travis-ci.org/gsvarovsky/json-rql.svg?branch=master)](https://travis-ci.org/gsvarovsky/json-rql)
-[![Try json-rql on RunKit](https://badge.runkitcdn.com/json-rql.svg)](https://npm.runkit.com/json-rql)
+[![Try json-rql on
+RunKit](https://badge.runkitcdn.com/json-rql.svg)](https://npm.runkit.com/json-rql)
+
 # json-rql
 *JSON Resource Query Language, for simple, consistent query APIs*
 
-This repository and library presents a *convention* for expressing queries against structured resources, using JSON. It helps resolve the tensions between *expressibility* and *simplicity*, and between *agility* and *future-proofing*, in API design. It is based on [JSON-LD](https://json-ld.org).
+This repository and library presents a *convention* for expressing queries
+against structured resources, using JSON. It helps resolve the tensions between
+*expressibility* and *simplicity*, and between *agility* and *future-proofing*,
+in API design. It is based on [JSON-LD](https://json-ld.org).
 
 A simple example query:
 ```json
 { "@where" : { "@type" : "Person", "name" : { "@contains" : "Fred" } } }
 ```
 
-1. It's JSON: straightforward to construct in code, manipulate and serialize, and also to *constrain*. Use standard JSON tooling to limit your API to the queries that your back-end has been designed and tested for.
-2. It's SPARQL: *in context*, all queries can be translated to the W3C standard language for directed, labeled graph data. This means that your API can be extended to cover future query requirements, without breaking changes.
+1. It's JSON: straightforward to construct in code, manipulate and serialize,
+   and also to *constrain*. Use standard JSON tooling to limit your API to the
+   queries that your back-end has been designed and tested for.
+2. It's SPARQL: *in context*, all queries can be translated to the W3C standard
+   language for directed, labeled graph data. This means that your API can be
+   extended to cover future query requirements, without breaking changes.
 
-Please see [the wiki](https://github.com/gsvarovsky/json-rql/wiki) for an explanation of these design choices, and for a walkthrough of common query types.
+Please see [the spec](spec/json-rql.md) for an explanation of these design
+choices, and for a walkthrough of common query types.
 
-**[Feedback](https://github.com/gsvarovsky/json-rql/issues) and contributions welcome!**
+**[Feedback](https://github.com/gsvarovsky/json-rql/issues) and contributions
+welcome!**
 
 ## SPARQL Translation
-This library demonstrates and tests interconvertibility of **json-rql** and SPARQL. It can be used directly in a Javascript environment to translate queries, for example in an API implementation where the back-end supports SPARQL.
+This library demonstrates and tests interconvertibility of **json-rql** and
+SPARQL. It can be used directly in a Javascript environment to translate
+queries, for example in an API implementation where the back-end supports
+SPARQL.
 
 *Requires a modern browser / Node.js v10+*
 
@@ -32,9 +47,13 @@ require('json-rql').toSparql({
 });
 ```
 
-For translation into SPARQL, a **json-rql** query typically requires a `@select`, `@construct` or `@describe` clause, and a `@context` to provide the mapping between terms and IRIs. When used in an API, these elements will often derive from the call context.
+For translation into SPARQL, a **json-rql** query typically requires a
+`@select`, `@construct` or `@describe` clause, and a `@context` to provide the
+mapping between terms and IRIs. When used in an API, these elements will often
+derive from the call context.
 
-SPARQL language keywords supported so far can be found in [spec/keywords.json](spec/keywords.json).
+SPARQL language keywords supported so far can be found in
+[spec/keywords.json](spec/keywords.json).
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript
