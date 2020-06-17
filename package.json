@@ -16,7 +16,7 @@
     "prepublishOnly": "npm run build && npm version $VERSION && git push",
     "todo": "node test/todo.js",
     "schema": "node genschema.js",
-    "doc": "typedoc index.ts && cp spec/schema.json _site"
+    "doc": "typedoc spec/index.ts && cp spec/schema.json _site"
   },
   "files": [
     "sparql/*",
