@@ -32,15 +32,17 @@ function readJrql(name) {
 }
 
 exports.forEachSparqlExample = function (test/*(name, sparql, jrql)*/) {
+    var noData = [];
     _.each(exampleNames(), function (name) {
         var sparql = readSparql(name), jrql = readJrql(name);
 
         if (jrql) {
             test(name, sparql, jrql);
         } else if (!isTodo(name)) {
-            console.warn('Not testing example %s', name);
+            noData.push(name);
         }
     });
+    console.warn('No data for examples %s', noData);
 };
 
 function isTestCase(name) {

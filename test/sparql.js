@@ -1,6 +1,7 @@
 var _ = require('lodash'),
     _jrql = require('../sparql'),
     pass = require('pass-error'),
+    Ajv = require('ajv'),
     expect = require('chai').expect,
     toComparableAst = require('./sparqljsUtil').toComparableAst,
     sparqlParser = new (require('sparqljs').Parser)(),
@@ -205,6 +206,11 @@ describe('SPARQL handling', function () {
     describe('SPARQL.js examples', function () {
         forEachSparqlExample(function test(name, sparql, jrql) {
             var unmutated = _.cloneDeep(jrql);
+            var validate = new Ajv().compile(require('../spec/schema.json'));
+
+            it('should validate for ' + name, function () {
+                expect(validate(jrql)).to.eq(true);
+            });
 
             it('should convert SPARQL to json-rql for ' + name, function (done) {
                 _jrql.toJsonRql(sparql, pass(function (genJrql) {

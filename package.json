@@ -51,6 +51,7 @@
     "sparqljs": "^3.0.1"
   },
   "devDependencies": {
+    "ajv": "^6.12.2",
     "chai": "^4.2.0",
     "download-git-repo": "^3.0.2",
     "json-stringify-pretty-compact": "^2.0.0",
