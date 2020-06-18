@@ -9,7 +9,7 @@
   },
   "scripts": {
     "clean": "rm -rf _site",
-    "build": "run-s clean compile test schema doc",
+    "build": "run-s clean compile schema test doc",
     "compile": "tsc",
     "test": "mocha test",
     "unit": "mocha",
