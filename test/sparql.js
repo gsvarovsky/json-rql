@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-    _jrql = require('../index'),
+    _jrql = require('../sparql'),
     pass = require('pass-error'),
     expect = require('chai').expect,
     toComparableAst = require('./sparqljsUtil').toComparableAst,

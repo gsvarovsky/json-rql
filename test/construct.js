@@ -1,6 +1,6 @@
 var _ = require('lodash'),
     expect = require('chai').expect,
-    _jrql = require('../index'),
+    _jrql = require('../sparql'),
     pass = require('pass-error');
 
 describe('JSON-RQL', function () {

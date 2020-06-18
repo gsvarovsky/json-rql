@@ -6,7 +6,7 @@ describe('JSON-RQL', function () {
         var Module = require('module'), originalRequire = Module.prototype.require, originalLog = console.log;
         try {
             Module.prototype.require = function (module) {
-                return module === 'json-rql' ? require('../index') : originalRequire.apply(this, arguments);
+                return module === 'json-rql/sparql' ? require('../sparql') : originalRequire.apply(this, arguments);
             };
             function restoreLog() { console.log = originalLog; }
             console.log = function (sparql) {

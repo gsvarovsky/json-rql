@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "strictNullChecks": true
+  },
+  "include": [
+    "spec/index.ts"
+  ]
+}

@@ -1,4 +1,4 @@
-require('json-rql').toSparql({
+require('json-rql/sparql').toSparql({
     '@context' : {
         'dbpedia-owl' : 'http://dbpedia.org/ontology/'
     },

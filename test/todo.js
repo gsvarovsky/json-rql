@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     _fs = require('fs'),
     _path = require('path'),
-    _jrql = require('../index'),
+    _jrql = require('../sparql'),
     readline = require('readline'),
     stringify = require('json-stringify-pretty-compact'),
     sparqlFolder = _path.join(__dirname, '../node_modules/sparqljs-src/queries'),

@@ -1,4 +1,5 @@
-import { Iri } from "jsonld/jsonld-spec";
+import { Iri } from 'jsonld/jsonld-spec';
+import { operators } from './keywords.json';
 
 /**
  * @see https://json-ld.org/schemas/jsonld-schema.json
@@ -9,6 +10,10 @@ import { Iri } from "jsonld/jsonld-spec";
  * @see https://www.w3.org/TR/sparql11-query/#QSynVariables
  */
 export type Variable = string;
+
+export function isVariable(value: any): value is Variable {
+  return typeof value == 'string' && !!/^\?([\d\w]+)$/g.exec(value);
+}
 
 /**
  * All **json-rql** queries have an object/hash Pattern at top level. All the
@@ -96,7 +101,7 @@ export interface Context {
 export interface ValueObject {
   /**
    * Used to specify the data that is associated with a particular property in
-   * the graph.
+   * the graph. Note that in **json-rql** a `@value` will never be a variable.
    * @see https://json-ld.org/spec/latest/json-ld/#typed-values
    */
   '@value': number | string | boolean;
@@ -133,6 +138,13 @@ export function isReference(value: Value): value is Reference {
  */
 export type Atom = number | string | boolean | Variable | ValueObject;
 
+export function isAtom(value: Value): value is Atom {
+  return typeof value == 'number'
+    || typeof value == 'string'
+    || typeof value == 'boolean'
+    || isValueObject(value);
+}
+
 /**
  * A value that can be assigned as the target of a graph edge.
  */
@@ -150,10 +162,14 @@ export type Value = Atom | Subject | Reference;
  */
 export type Expression = Atom | Constraint;
 
+export function isExpression(value: any): value is Expression {
+  return isAtom(value) || isConstraint(value);
+}
+
 /**
  * An operator-based constraint of the form `{ <operator> : [<expression>...]
  * }`. The key is the operator, and the value is the array of arguments. If the
- * operator is unary, the expression need not be wrapped in an array..
+ * operator is unary, the expression need not be wrapped in an array.
  * @see https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#expressions
  */
 export interface Constraint {
@@ -164,9 +180,15 @@ export interface Constraint {
   '@distinct'?: boolean;
   /**
    * Operators are based on SPARQL expression keywords, lowercase with '@' prefix.
+   * It's not practical to constrain the types further here, see #isConstraint
    * @see https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#rConditionalOrExpression
    */
-  [operator: string]: Expression | Expression[] | Group | '*' | null;
+  [operator: string]: Expression | Expression[] | Group | '*' | null | boolean | undefined;
+}
+
+export function isConstraint(value: object): value is Constraint {
+  const keys = Object.keys(value).filter(k => k !== '@distinct');
+  return keys.every(key => key in operators);
 }
 
 /**
@@ -263,33 +285,6 @@ export function isGroup(p: Pattern): p is Group {
   return '@graph' in p || '@filter' in p || '@union' in p || '@optional' in p;
 }
 
-export type GroupLike = Subject[] | Subject | Group;
-
-export function isGroupLike(pattern: Pattern[] | Pattern): pattern is GroupLike {
-  return Array.isArray(pattern) ? pattern.every(isGroupLike) : !isQuery(pattern);
-}
-
-export function asGroup(g: GroupLike, context?: Context): Group {
-  let group: Group;
-  if (Array.isArray(g)) {
-    // Cannot promote contexts
-    group = { '@graph': g };
-  } else if (isGroup(g)) {
-    group = g as Group;
-  } else {
-    // Promote the subject's context to the group level
-    const { '@context': subjectContext, ...subject } = g;
-    context = { ...subjectContext, ...context };
-    group = { '@graph': subject };
-  }
-  return context ? { '@context': context, ...group } : group;
-}
-
-export function asSubjects(g: GroupLike, context?: Context): Subject[] {
-  // TODO: Apply the context to the subjects, if necessary
-  return ([] as Subject[]).concat(asGroup(g)['@graph']);
-}
-
 export interface Query extends Pattern {
   /**
    * specifies a pattern to match, or an array of patterns to match. Each can be
@@ -342,9 +337,48 @@ export function isRead(p: Pattern): p is Read {
 }
 
 /**
- * A variable expression is either a plain variable (e.g. `"?size"`), or an
- * object whose keys are variables, and whose values are expressions whose
- * result will be assigned to the variable, e.g.
+ * Determines if a Pattern can be used as a top-level object to perform a write
+ * against a data set. A writeable Pattern can be:
+ * - A Subject with no variables in key or value positions, recursively
+ * - A Group with only a `@graph` key, containing writeable Subjects
+ * - An Update
+ *
+ * This check does not guarantee that any updates will actually be made. It also
+ * leaves a class of Patterns that are neither Reads nor Writeable. Such
+ * patterns should not be accepted by a data store as a transaction.
+ *
+ * An implementation may wish to leave the scan for variables until query
+ * processing, for efficiency; if so, pass the 'quick' parameter.
+ */
+export function isWritable(p: Pattern, quick?: 'quick'): p is Subject | Group | Update {
+  if (isRead(p))
+    return false;
+  // Do a full tree walk to find variables, ignoring `@value` keys
+  function isWritableValue(o: any): boolean {
+    if (quick)
+      return true;
+    else if (typeof o == 'object')
+      if (Array.isArray(o))
+        return o.every(isWritableValue);
+      else
+        return Object.keys(o).every(k =>
+          !isVariable(k) && (k === '@value' || isWritableValue(o[k])));
+    else
+      return !isVariable(o);
+  }
+  if (isSubject(p)) {
+    return isWritableValue(p);
+  } else if (isGroup(p)) {
+    return !('@filter' in p || '@union' in p || '@optional' in p) &&
+      p['@graph'] != null && isWritableValue(p['@graph'])
+  } else {
+    return isUpdate(p);
+  }
+}
+
+/**
+ * A variable expression an object whose keys are variables, and whose values
+ * are expressions whose result will be assigned to the variable, e.g.
  * ```json
  * { "?averageSize" : { "@avg" : "?size" } }
  * ```
@@ -353,6 +387,11 @@ export interface VariableExpression {
   [key: string]: Expression;
 };
 
+export function isVariableExpression(value: any): value is VariableExpression {
+  const keys = typeof value == 'object' ? Object.keys(value) : [];
+  return keys.every(key => isVariable(key) && isExpression(value[key]));
+}
+
 export interface Describe extends Read {
   /**
    * Specifies a single Variable Expression or array of Variable Expressions.
@@ -360,7 +399,7 @@ export interface Describe extends Read {
    * suitable expanded format, such as an entity with its top-level properties.
    * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=describe&type=Code
    */
-  '@describe': Iri | Variable | VariableExpression
+  '@describe': Iri | Iri[] | Variable | Variable[]
 }
 
 export function isDescribe(p: Pattern): p is Describe {
@@ -373,20 +412,20 @@ export interface Construct extends Read {
    * data matched by the `@where` clause.
    * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=construct&type=Code
    */
-  '@construct': GroupLike
+  '@construct': Subject | Subject[]
 }
 
 export function isConstruct(p: Pattern): p is Construct {
   return '@construct' in p;
 }
 
-export type Result = '*' | Variable | VariableExpression
+export type Result = '*' | Variable | Variable[] | VariableExpression
 
 export interface Distinct extends Read {
   /**
    * Like `@select` but returns only unique rows.
    */
-  '@distinct': Result[] | Result
+  '@distinct': Result
 }
 
 export function isDistinct(p: Pattern): p is Distinct {
@@ -399,7 +438,7 @@ export interface Select extends Read {
    * The output will be a table of atomic values.
    * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=select&type=Code
    */
-  '@select': Result[] | Result
+  '@select': Result
 }
 
 export function isSelect(p: Pattern): p is Select {
@@ -407,8 +446,8 @@ export function isSelect(p: Pattern): p is Select {
 }
 
 export interface Update extends Query {
-  '@insert': GroupLike;
-  '@delete': GroupLike;
+  '@insert': Subject | Subject[];
+  '@delete': Subject | Subject[];
 }
 
 export function isUpdate(p: Pattern): p is Update {

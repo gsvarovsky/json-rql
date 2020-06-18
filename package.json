@@ -2,14 +2,15 @@
   "name": "json-rql",
   "version": "0.4.0-0",
   "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
-  "main": "index.js",
+  "main": "spec/index.js",
   "types": "spec/index.ts",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "clean": "rm -rf _site",
-    "build": "run-s clean test schema doc",
+    "build": "run-s clean compile test schema doc",
+    "compile": "tsc",
     "test": "mocha test",
     "unit": "mocha",
     "postinstall": "node test/postinstall.js",
