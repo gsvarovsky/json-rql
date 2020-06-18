@@ -1,9 +1,63 @@
 import { Iri } from 'jsonld/jsonld-spec';
-import { operators } from './keywords.json';
 
 /**
  * @see https://json-ld.org/schemas/jsonld-schema.json
  */
+
+export const operators = {
+  '@eq': { sparql: '=' },
+  '@gt': { sparql: '>' },
+  '@lt': { sparql: '<' },
+  '@gte': { sparql: '>=' },
+  '@lte': { sparql: '<=' },
+  '@not': { sparql: '!' },
+  '@neq': { sparql: '!=' },
+  '@and': { sparql: '&&', associative: true },
+  '@or': { sparql: '||', associative: true },
+  '@plus': { sparql: '+' },
+  '@minus': { sparql: '-' },
+  '@times': { sparql: '*' },
+  '@divide': { sparql: '/' },
+  '@bound': { sparql: 'bound' },
+  '@regex': { sparql: 'regex' },
+  '@in': { sparql: 'in' },
+  '@notin': { sparql: 'notin' },
+  '@str': { sparql: 'str' },
+  '@lang': { sparql: 'lang' },
+  '@langmatches': { sparql: 'langmatches' },
+  '@count': { sparql: 'count', aggregation: true },
+  '@sum': { sparql: 'sum', aggregation: true },
+  '@min': { sparql: 'min', aggregation: true },
+  '@max': { sparql: 'max', aggregation: true },
+  '@avg': { sparql: 'avg', aggregation: true },
+  '@groupConcat': { sparql: 'group_concat', aggregation: true },
+  '@sample': { sparql: 'sample', aggregation: true },
+  '@desc': { sparql: 'descending' },
+  '@asc': { sparql: 'ascending' }
+};
+
+export const clauses = {
+  '@construct': { sparql: 'construct' },
+  '@select': { sparql: 'select' },
+  '@describe': { sparql: 'describe' },
+  '@distinct': { sparql: 'distinct' },
+  '@where': { sparql: 'where' },
+  '@orderBy': { sparql: 'order by' },
+  '@groupBy': { sparql: 'group by' },
+  '@having': { sparql: 'having' },
+  '@limit': { sparql: 'limit' },
+  '@offset': { sparql: 'offset' },
+  '@values': { sparql: 'values' }
+};
+
+export const groupPatterns = {
+  '@graph': { sparql: null },
+  '@bind': { sparql: 'bind' },
+  '@filter': { sparql: 'filter' },
+  '@union': { sparql: 'union' },
+  '@optional': { sparql: 'optional' },
+  '@values': { sparql: 'values' }
+};
 
 /**
  * A query variable, prefixed with "?"
@@ -187,15 +241,14 @@ export interface Constraint {
 }
 
 export function isConstraint(value: object): value is Constraint {
-  const keys = Object.keys(value).filter(k => k !== '@distinct');
-  return keys.every(key => key in operators);
+  return Object.keys(value).filter(k => k !== '@distinct').every(key => key in operators);
 }
 
 /**
  * An in-line filter, of the form `{ <operator> : <expression> }`. The operator
  * is acting as an infix, and in this case the expression represents only the
  * RHS. The object may specify a variable to be matched against the filter by
- * including an `@id` key as well as the operator, like this: `{ "@id" :
+ * including an `@id` key as well as the operator, like this: `{ '@id' :
  * "?variable", <operator> : <expression> }`.
  */
 export type InlineFilter = { '@id'?: Variable } & Constraint;
@@ -227,7 +280,7 @@ export interface Set {
  *    The operator is acting as an infix, and in this case the expression
  *    represents only the RHS. The object may specify a variable to be matched
  *    against the filter by including an `@id` key as well as the operator, like
- *    this: `{ "@id" : "?variable", <operator> : <expression> }`.
+ *    this: `{ '@id' : "?variable", <operator> : <expression> }`.
  */
 export interface Subject extends Pattern {
   /**
@@ -380,7 +433,7 @@ export function isWritable(p: Pattern, quick?: 'quick'): p is Subject | Group | 
  * A variable expression an object whose keys are variables, and whose values
  * are expressions whose result will be assigned to the variable, e.g.
  * ```json
- * { "?averageSize" : { "@avg" : "?size" } }
+ * { "?averageSize" : { '@avg' : "?size" } }
  * ```
  */
 export interface VariableExpression {

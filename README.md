@@ -31,15 +31,15 @@ choices, and for a walkthrough of common query types.
 welcome!**
 
 ## SPARQL Translation
-This library demonstrates and tests interconvertibility of **json-rql** and
-SPARQL. It can be used directly in a Javascript environment to translate
+The `sparql` module demonstrates and tests interconvertibility of **json-rql**
+and SPARQL. It can be used directly in a Javascript environment to translate
 queries, for example in an API implementation where the back-end supports
 SPARQL.
 
 *Requires a modern browser / Node.js v10+*
 
 ```javascript
-require('json-rql').toSparql({
+require('json-rql/sparql').toSparql({
   '@select' : '?s',
   '@where' : { '@id' : '?s', '?p' : '?o' }
 }, function (err, sparql) {
@@ -53,11 +53,11 @@ mapping between terms and IRIs. When used in an API, these elements will often
 derive from the call context.
 
 SPARQL language keywords supported so far can be found in
-[spec/keywords.json](spec/keywords.json).
+[spec/index.ts](spec/index.ts).
 
 Using the [example](https://www.npmjs.com/package/sparqljs#representation) from SPARQL.js:
 ```javascript
-require('json-rql').toSparql({
+require('json-rql/sparql').toSparql({
   '@context' : {
     'dbpedia-owl' : 'http://dbpedia.org/ontology/'
   },

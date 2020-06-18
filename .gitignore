@@ -50,4 +50,5 @@ test/data/sparql
 # Generated output
 spec/schema.json
 spec/index.js
+spec/index.d.ts
 _site/
