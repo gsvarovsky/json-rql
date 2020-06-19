@@ -57,7 +57,7 @@ The recognised query keys are:
 2. One of four options for the returned data. Again, in a typical API the choice
    will often be implicit, and the key omitted.
    * [`@construct`](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=construct&type=Code)
-     specifies a [Subject](interfaces/Subject.html) for the requested data,
+     specifies a [Subject](interfaces/subject.html) for the requested data,
      using [Variables](#variable) to place-hold data matched by the `@where`
      clause.
    * [`@describe`](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=describe&type=Code)
