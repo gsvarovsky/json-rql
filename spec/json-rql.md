@@ -29,9 +29,8 @@ discussion of the motivation behind **json-rql**.
 
 ## syntax
 Here we describe the syntax of **json-rql** informally in terms of JSON
-constructs (hashes and keys), for introductory purposes. The formal type
-definitions below and in the navigation panel on the left gives a more formal
-specification.
+constructs (hashes and keys), for introductory purposes. The type definitions
+below and in the navigation panel on the left gives a more formal specification.
 
 *Hint: links are provided from keywords to examples. Note that these are rather
 SPARQL-ish, in that they make extensive use of prefixes and IRIs. An API doesn't

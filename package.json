@@ -50,6 +50,7 @@
     "sparqljs": "^3.0.1"
   },
   "devDependencies": {
+    "@m-ld/typedoc-theme": "^0.1.0",
     "ajv": "^6.12.2",
     "chai": "^4.2.0",
     "download-git-repo": "^3.0.2",
