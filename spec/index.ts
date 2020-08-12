@@ -248,8 +248,8 @@ export function isConstraint(value: object): value is Constraint {
  * An in-line filter, of the form `{ <operator> : <expression> }`. The operator
  * is acting as an infix, and in this case the expression represents only the
  * RHS. The object may specify a variable to be matched against the filter by
- * including an `@id` key as well as the operator, like this: `{ '@id' :
- * "?variable", <operator> : <expression> }`.
+ * including an `@id` key as well as the operator, like this:
+ * `{ "@id" : "?variable", <operator> : <expression> }`.
  */
 export type InlineFilter = { '@id'?: Variable } & Constraint;
 
@@ -287,12 +287,12 @@ export interface Subject extends Pattern {
    * Used to uniquely identify things that are being described in the document
    * with IRIs or blank node identifiers.
    */
-  '@id'?: Iri | Variable;
+  '@id'?: Iri | Variable | InlineFilter;
   /**
    * Used to set the data type of a node or typed value.
    * @see https://json-ld.org/spec/latest/json-ld/#specifying-the-type
    */
-  '@type'?: Iri | Variable;
+  '@type'?: Iri | Variable | Iri[] | Variable[] | InlineFilter;
   /**
    * Specifies a graph edge, that is, a mapping from the `@id` of this JSON
    * object to one or more values, which may also express constraints.
