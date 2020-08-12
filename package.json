@@ -1,6 +1,6 @@
 {
   "name": "json-rql",
-  "version": "0.4.0-1",
+  "version": "0.4.0",
   "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
   "main": "spec/index.js",
   "types": "spec/index.d.ts",
