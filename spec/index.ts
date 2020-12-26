@@ -254,11 +254,26 @@ export function isConstraint(value: object): value is Constraint {
 export type InlineFilter = { '@id'?: Variable } & Constraint;
 
 /**
- * Used to express an ordered set of data.
+ * Used to express an ordered or unordered container of data.
  * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
  */
-export interface List {
+export type Container = List | Set;
+
+/**
+ * Used to express an ordered set of data. A List object is reified to a Subject
+ * (unlike in JSON-LD) and so it has an @id, which can be set by the user.
+ *
+ * Note that this reification is only possible when using the `@list` keyword,
+ * and not if the active context specifies `"@container": "@list"` for a
+ * property, in which case the list itself is anonymous.
+ * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
+ */
+export interface List extends Subject {
   '@list': Value | Value[];
+}
+
+export function isList(value: Subject['any']): value is List {
+  return typeof (value) === 'object' && '@list' in value;
 }
 
 /**
@@ -268,6 +283,10 @@ export interface List {
  */
 export interface Set {
   '@set': Value | Value[];
+}
+
+export function isSet(value: Subject['any']): value is Set {
+  return typeof (value) === 'object' && '@set' in value;
 }
 
 /**
@@ -298,7 +317,7 @@ export interface Subject extends Pattern {
    * object to one or more values, which may also express constraints.
    * @see https://json-ld.org/spec/latest/json-ld/#embedding
    */
-  [key: string]: Value | Value[] | InlineFilter | List | Set | Context | undefined;
+  [key: string]: Value | Value[] | InlineFilter | Container | Context | undefined;
   // TODO: @reverse https://json-ld.org/spec/latest/json-ld/#reverse-properties
 }
 

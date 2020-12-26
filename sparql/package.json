@@ -1,0 +1,35 @@
+{
+  "name": "json-rql-sparql",
+  "version": "0.5.0",
+  "description": "json-rql to SPARQL interconversion library",
+  "main": "index.js",
+  "scripts": {
+    "prepublishOnly": "npm version $VERSION"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gsvarovsky/json-rql.git"
+  },
+  "keywords": [
+    "json",
+    "sparql",
+    "rdf",
+    "json-ld"
+  ],
+  "author": "George Svarovsky",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gsvarovsky/json-rql/issues"
+  },
+  "homepage": "https://json-rql.org/",
+  "dependencies": {
+    "async": "^2.6.3",
+    "gen-id": "^0.1.1",
+    "json-rql": "^0.5.0",
+    "jsonld": "^3.2.0",
+    "lodash": "^4.17.20",
+    "n3": "^1.6.4",
+    "pass-error": "^0.1.2",
+    "sparqljs": "^3.2.0"
+  }
+}

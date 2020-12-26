@@ -9,17 +9,18 @@
   },
   "scripts": {
     "clean": "rm -rf _site",
+    "prebuild": "cd sparql && npm install && npm link ../ && cd ..",
     "build": "run-s clean compile schema test doc",
     "compile": "tsc",
     "test": "npm run unit test",
     "unit": "node test/pretest.js && mocha",
     "prepublishOnly": "npm run build && npm version $VERSION && git push",
+    "postpublish": "cd sparql && npm publish && cd ..",
     "todo": "node test/todo.js",
     "schema": "node genschema.js",
     "doc": "typedoc spec/index.ts && cp spec/schema.json _site"
   },
   "files": [
-    "sparql/*",
     "spec/*"
   ],
   "repository": {
@@ -38,16 +39,9 @@
   "bugs": {
     "url": "https://github.com/gsvarovsky/json-rql/issues"
   },
-  "homepage": "https://github.com/gsvarovsky/json-rql#readme",
+  "homepage": "https://json-rql.org/",
   "dependencies": {
-    "@types/jsonld": "^1.5.1",
-    "async": "^2.6.3",
-    "gen-id": "^0.1.1",
-    "jsonld": "^3.2.0",
-    "lodash": "^4.17.20",
-    "n3": "^1.6.4",
-    "pass-error": "^0.1.2",
-    "sparqljs": "^3.2.0"
+    "@types/jsonld": "^1.5.1"
   },
   "devDependencies": {
     "@m-ld/typedoc-theme": "^0.1.4",

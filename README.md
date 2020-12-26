@@ -31,6 +31,10 @@ choices, and for a walkthrough of common query types.
 welcome!**
 
 ## SPARQL Translation
+> ⚠️ Since v0.6, the `sparql` module is separately published as
+> `json-rql-sparql`, to ease the dependencies burden for consumers of the spec
+> only.
+
 The `sparql` module demonstrates and tests interconvertibility of **json-rql**
 and SPARQL. It can be used directly in a Javascript environment to translate
 queries, for example in an API implementation where the back-end supports
@@ -83,6 +87,10 @@ require('json-rql/sparql').toSparql({
 ```
 
 See the tests (especially the JSON files in test/data) for more examples.
+
+## Development
+The `sparql` modules is still built and tested from the root package. See the
+`prebuild`, `postpublish` npm scripts to see the how the build is coordinated.
 
 ## Biblio
 * [JSON-LD Home](http://json-ld.org/)

@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     expect = require('chai').expect,
     _jrql = require('../sparql'),
-    pass = require('pass-error');
+    pass = require('../sparql/node_modules/pass-error');
 
 describe('JSON-RQL', function () {
   it('should work with a deep construct', function (done) {

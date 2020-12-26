@@ -1,10 +1,10 @@
-var _ = require('lodash'),
+var _ = require('../sparql/node_modules/lodash'),
     _fs = require('fs'),
     _path = require('path'),
     _jrql = require('../sparql'),
     readline = require('readline'),
     stringify = require('json-stringify-pretty-compact'),
-    sparqlFolder = _path.join(__dirname, '../node_modules/sparqljs-src/queries/sparql'),
+    sparqlFolder = _path.join(__dirname, '../sparql/node_modules/sparqljs-src/queries/sparql'),
     dataFolder = _path.join(__dirname, 'data');
 
 function exampleNames() {

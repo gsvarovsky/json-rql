@@ -1,10 +1,10 @@
-var _ = require('lodash'),
+var _ = require('../sparql/node_modules/lodash'),
     _jrql = require('../sparql'),
-    pass = require('pass-error'),
-    Ajv = require('ajv'),
+    pass = require('../sparql/node_modules/pass-error'),
+    Ajv = require('../sparql/node_modules/ajv'),
     expect = require('chai').expect,
     toComparableAst = require('./sparqljsUtil').toComparableAst,
-    sparqlParser = new (require('sparqljs').Parser)(),
+    sparqlParser = new (require('../sparql/node_modules/sparqljs').Parser)(),
     forEachSparqlExample = require('./todo').forEachSparqlExample;
 
 describe('SPARQL handling', function () {

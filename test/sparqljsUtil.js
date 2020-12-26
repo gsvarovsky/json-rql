@@ -1,4 +1,4 @@
-var _ = require('lodash'),
+var _ = require('../sparql/node_modules/lodash'),
     hash = require('object-hash'),
     expect = require('chai').expect;
 
