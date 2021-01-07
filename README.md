@@ -7,8 +7,14 @@ RunKit](https://badge.runkitcdn.com/json-rql.svg)](https://npm.runkit.com/json-r
 # json-rql
 *JSON Resource Query Language, for simple, consistent query APIs*
 
-This repository and library presents a *convention* for expressing queries
-against structured resources, using JSON. It helps resolve the tensions between
+> _We could, of course, use any notation we want; do not laugh at notations;
+> invent them, they are powerful. In fact, mathematics is, to a large extent,
+> invention of better notations._
+
+<sub>– The Feynman Lectures on Physics, Addison-Wesley, Chapter 17 (1963)</sub>
+
+This repository and library presents a notation for expressing queries against
+structured resources, using JSON. It helps resolve the tensions between
 *expressibility* and *simplicity*, and between *agility* and *future-proofing*,
 in API design. It is based on [JSON-LD](https://json-ld.org).
 
