@@ -173,7 +173,7 @@ export interface ValueObject {
   '@index'?: string;
 }
 
-export function isValueObject(value: Value): value is ValueObject {
+export function isValueObject(value: SubjectPropertyObject): value is ValueObject {
   return typeof value == 'object' && '@value' in value;
 }
 
@@ -183,7 +183,7 @@ export function isValueObject(value: Value): value is ValueObject {
  */
 export type Reference = { '@id': Iri; };
 
-export function isReference(value: Value): value is Reference {
+export function isReference(value: SubjectPropertyObject): value is Reference {
   return typeof value == 'object' && Object.keys(value).every(k => k === '@id');
 }
 
@@ -192,7 +192,7 @@ export function isReference(value: Value): value is Reference {
  */
 export type Atom = number | string | boolean | Variable | ValueObject;
 
-export function isAtom(value: Value): value is Atom {
+export function isAtom(value: SubjectPropertyObject): value is Atom {
   return typeof value == 'number'
     || typeof value == 'string'
     || typeof value == 'boolean'
@@ -254,6 +254,13 @@ export function isConstraint(value: object): value is Constraint {
 export type InlineFilter = { '@id'?: Variable } & Constraint;
 
 /**
+ * The allowable types for a Subject property value, named awkwardly to avoid
+ * overloading `Object`. Represents the "object" of a property, in the sense of
+ * the object of discourse, whether it be a concrete value or a filter.
+ */
+export type SubjectPropertyObject = Value | Container | InlineFilter | SubjectPropertyObject[];
+
+/**
  * Used to express an ordered or unordered container of data.
  * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
  */
@@ -269,10 +276,10 @@ export type Container = List | Set;
  * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
  */
 export interface List extends Subject {
-  '@list': Value | Value[];
+  '@list': SubjectPropertyObject;
 }
 
-export function isList(value: Subject['any']): value is List {
+export function isList(value: SubjectPropertyObject): value is List {
   return typeof (value) === 'object' && '@list' in value;
 }
 
@@ -282,10 +289,10 @@ export function isList(value: Subject['any']): value is List {
  * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
  */
 export interface Set {
-  '@set': Value | Value[];
+  '@set': SubjectPropertyObject;
 }
 
-export function isSet(value: Subject['any']): value is Set {
+export function isSet(value: SubjectPropertyObject): value is Set {
   return typeof (value) === 'object' && '@set' in value;
 }
 
@@ -317,8 +324,19 @@ export interface Subject extends Pattern {
    * object to one or more values, which may also express constraints.
    * @see https://json-ld.org/spec/latest/json-ld/#embedding
    */
-  [key: string]: Value | Value[] | InlineFilter | Container | Context | undefined;
+  [key: string]: SubjectPropertyObject | Context | undefined;
   // TODO: @reverse https://json-ld.org/spec/latest/json-ld/#reverse-properties
+}
+
+/**
+ * Determines whether the given property object from a well-formed Subject is a
+ * graph edge; i.e. not a `@context` or the Subject `@id`.
+ * @param property the Subject property in question
+ * @param object the object (value) of the property
+ */
+export function isPropertyObject(property: string, object: Subject['any']):
+  object is SubjectPropertyObject {
+  return property !== '@context' && property !== '@id' && object != null;
 }
 
 export function isSubject(p: Pattern): p is Subject {
