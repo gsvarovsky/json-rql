@@ -1,8 +1,8 @@
 var _fs = require('fs'),
   _path = require('path'),
   download = require('download-git-repo'),
-  sparqljsPackage = require('sparqljs/package.json'),
-  sparqljsSrcFolder = _path.join(__dirname, '../node_modules/sparqljs-src'),
+  sparqljsPackage = require('../sparql/node_modules/sparqljs/package.json'),
+  sparqljsSrcFolder = _path.join(__dirname, '../sparql/node_modules/sparqljs-src'),
   sparqlFolder = _path.join(sparqljsSrcFolder, 'queries');
 
 if (!_fs.existsSync(sparqlFolder)) {

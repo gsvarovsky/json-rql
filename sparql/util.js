@@ -205,4 +205,4 @@ _util = module.exports = _.assign({
     newVariable : function () {
         return '?jrql_' + genVarName.generate();
     }
-}, require('../spec'));
+}, require('json-rql'));

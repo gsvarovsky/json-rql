@@ -7,8 +7,14 @@ RunKit](https://badge.runkitcdn.com/json-rql.svg)](https://npm.runkit.com/json-r
 # json-rql
 *JSON Resource Query Language, for simple, consistent query APIs*
 
-This repository and library presents a *convention* for expressing queries
-against structured resources, using JSON. It helps resolve the tensions between
+> _We could, of course, use any notation we want; do not laugh at notations;
+> invent them, they are powerful. In fact, mathematics is, to a large extent,
+> invention of better notations._
+
+<sub>– The Feynman Lectures on Physics, Addison-Wesley, Chapter 17 (1963)</sub>
+
+This repository and library presents a notation for expressing queries against
+structured resources, using JSON. It helps resolve the tensions between
 *expressibility* and *simplicity*, and between *agility* and *future-proofing*,
 in API design. It is based on [JSON-LD](https://json-ld.org).
 
@@ -31,6 +37,10 @@ choices, and for a walkthrough of common query types.
 welcome!**
 
 ## SPARQL Translation
+> ⚠️ Since v0.6, the `sparql` module is separately published as
+> `json-rql-sparql`, to ease the dependencies burden for consumers of the spec
+> only.
+
 The `sparql` module demonstrates and tests interconvertibility of **json-rql**
 and SPARQL. It can be used directly in a Javascript environment to translate
 queries, for example in an API implementation where the back-end supports
@@ -83,6 +93,10 @@ require('json-rql/sparql').toSparql({
 ```
 
 See the tests (especially the JSON files in test/data) for more examples.
+
+## Development
+The `sparql` modules is still built and tested from the root package. See the
+`prebuild`, `postpublish` npm scripts to see the how the build is coordinated.
 
 ## Biblio
 * [JSON-LD Home](http://json-ld.org/)
