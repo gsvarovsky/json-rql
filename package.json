@@ -41,7 +41,7 @@
   },
   "homepage": "https://json-rql.org/",
   "dependencies": {
-    "@types/jsonld": "^1.5.1"
+    "@types/jsonld": "^1.5.2"
   },
   "devDependencies": {
     "@m-ld/typedoc-theme": "^0.1.4",
@@ -51,9 +51,9 @@
     "json-stringify-pretty-compact": "^2.0.0",
     "mocha": "^8.2.1",
     "npm-run-all": "^4.1.5",
-    "object-hash": "^2.0.3",
+    "object-hash": "^2.1.1",
     "typedoc": "^0.19.2",
-    "typescript-json-schema": "^0.45.0"
+    "typescript-json-schema": "^0.45.1"
   },
   "runkitExampleFilename": "sparql/example.js"
 }
