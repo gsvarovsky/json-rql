@@ -4,7 +4,7 @@
   "description": "json-rql to SPARQL interconversion library",
   "main": "index.js",
   "scripts": {
-    "prepublishOnly": "npm install \"json-rql@\"$(node -p \"require('../package.json').version\") && npm version $VERSION"
+    "prepublishOnly": "npm install \"json-rql@\"$JRQLVER && npm version $JRQLVER"
   },
   "repository": {
     "type": "git",

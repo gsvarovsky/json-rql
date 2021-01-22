@@ -14,8 +14,8 @@
     "compile": "tsc",
     "test": "npm run unit test",
     "unit": "node test/pretest.js && mocha",
-    "prepublishOnly": "npm run build && npm version $VERSION && git push",
-    "postpublish": "cd sparql && npm publish && cd ..",
+    "prepublishOnly": "npm run build && npm --no-git-tag-version version $VERSION",
+    "postpublish": "JRQLVER=$(node -p \"require('./package.json').version\") cd sparql && npm publish && cd .. && npm version $JRQLVER --allow-same-version && git push",
     "todo": "node test/todo.js",
     "schema": "node genschema.js",
     "doc": "typedoc spec/index.ts && cp spec/schema.json _site"
