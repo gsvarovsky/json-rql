@@ -1,6 +1,6 @@
 {
   "name": "json-rql",
-  "version": "0.6.0-0",
+  "version": "0.6.0-2",
   "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
   "main": "spec/index.js",
   "types": "spec/index.d.ts",
@@ -15,7 +15,7 @@
     "test": "npm run unit test",
     "unit": "node test/pretest.js && mocha",
     "prepublishOnly": "npm run build && npm --no-git-tag-version version $VERSION",
-    "postpublish": "export JRQLVER=$(node -p \"require('./package.json').version\") && cd sparql && npm publish && cd .. && npm version $JRQLVER --allow-same-version && git push",
+    "postpublish": "export JRQLVER=$(node -p \"require('./package.json').version\") && cd sparql && npm publish && cd .. && git commit -a -m \"v\"$JRQLVER && npm version $JRQLVER --allow-same-version && git push",
     "schema": "node genschema.js",
     "doc": "typedoc spec/index.ts && cp spec/schema.json _site"
   },
