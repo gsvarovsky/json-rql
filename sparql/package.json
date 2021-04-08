@@ -1,6 +1,6 @@
 {
   "name": "json-rql-sparql",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "json-rql to SPARQL interconversion library",
   "main": "index.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "dependencies": {
     "async": "^2.6.3",
     "gen-id": "^0.1.1",
-    "json-rql": "^0.6.0",
+    "json-rql": "^0.6.1",
     "jsonld": "^3.3.0",
     "lodash": "^4.17.20",
     "n3": "1.8",
