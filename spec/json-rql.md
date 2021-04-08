@@ -32,12 +32,12 @@ Here we describe the syntax of **json-rql** informally in terms of JSON
 constructs (hashes and keys), for introductory purposes. The type definitions
 below and in the navigation panel on the left gives a more formal specification.
 
-*Hint: links are provided from keywords to examples. Note that these are rather
+> Hint: links are provided from keywords to examples. Note that these are rather
 SPARQL-ish, in that they make extensive use of prefixes and IRIs. An API doesn't
 have to use these much, if at all. Also linked in the formal type documentation
 are various SPARQL and JSON-LD definitions. Again, you generally don't have to
 follow these links to be able to use **json-rql** effectively; the examples
-given should be sufficiently explanatory.*
+given should be sufficiently explanatory.
 
 ### [Pattern](interfaces/pattern.html)
 All **json-rql** queries are an object/hash at top level (one of the sub-types

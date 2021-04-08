@@ -61,7 +61,7 @@ export const groupPatterns = {
 
 /**
  * A query variable, prefixed with "?"
- * @see https://www.w3.org/TR/sparql11-query/#QSynVariables
+ * @see [SPARQL Variables](https://www.w3.org/TR/sparql11-query/#QSynVariables)
  */
 export type Variable = string;
 
@@ -77,12 +77,12 @@ export function isVariable(value: any): value is Variable {
  */
 export interface Pattern {
   /**
-   * A [JSON-LD Context](https://json-ld.org/spec/latest/json-ld/#the-context)
+   * A [JSON-LD Context](https://w3c.github.io/json-ld-syntax/#the-context)
    * for the query. In an API, this will frequently be implicit. For example,
    * using **json-rql** as the body of a `POST` to
    * `http://example.com/my-api/v1/person/query` might have the implicit context
    * of a Person (possibly found at `http://example.com/my-api/v1/person`).
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=context&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=context&type=Code)
    */
   '@context'?: Context
 }
@@ -93,7 +93,7 @@ export interface Pattern {
  * a string is interpreted as a vocabulary item. Its value is either a string
  * (simple term definition), expanding to an absolute IRI, or an expanded term
  * definition.
- * @see https://json-ld.org/spec/latest/json-ld/#dfn-term-definitions
+ * @see [JSON-LD dfn-term-definition](https://w3c.github.io/json-ld-syntax/#dfn-term-definition)
  */
 export type TermDef = Iri | ExpandedTermDef;
 
@@ -102,7 +102,7 @@ export type TermDef = Iri | ExpandedTermDef;
  * object containing one or more keyword properties to define the associated
  * absolute IRI, if this is a reverse property, the type associated with string
  * values, and a container mapping.
- * @see https://json-ld.org/spec/latest/json-ld/#dfn-expanded-term-definitions
+ * @see [JSON-LD dfn-expanded-term-definition](https://w3c.github.io/json-ld-syntax/#dfn-expanded-term-definition)
  */
 export interface ExpandedTermDef {
   '@id'?: Iri;
@@ -112,8 +112,8 @@ export interface ExpandedTermDef {
   '@reverse'?: TermDef;
   /**
    * Used to set the data type of a node or typed value.
-   * @see https://json-ld.org/spec/latest/json-ld/#typed-values
-   * @see https://json-ld.org/spec/latest/json-ld/#type-coercion
+   * @see [JSON-LD typed-values](https://w3c.github.io/json-ld-syntax/#typed-values)
+   * @see [JSON-LD type-coercion](https://w3c.github.io/json-ld-syntax/#type-coercion)
    */
   '@type'?: Iri;
   '@language'?: string;
@@ -130,39 +130,39 @@ export interface ExpandedTermDef {
 export interface Context {
   /**
    * Used to set the base IRI against which relative IRIs are resolved
-   * @see https://json-ld.org/spec/latest/json-ld/#base-iri
+   * @see [JSON-LD base-iri](https://w3c.github.io/json-ld-syntax/#base-iri)
    */
   '@base'?: Iri;
   /**
    * Used to expand properties and values in @type with a common prefix IRI
-   * @see https://json-ld.org/spec/latest/json-ld/#default-vocabulary
+   * @see [JSON-LD default-vocabulary](https://w3c.github.io/json-ld-syntax/#default-vocabulary)
    */
   '@vocab'?: Iri;
   /**
    * Defines a default language for a JSON-LD document
-   * @see https://json-ld.org/spec/latest/json-ld/#string-internationalization
+   * @see [JSON-LD string-internationalization](https://w3c.github.io/json-ld-syntax/#string-internationalization)
    */
   '@language'?: string;
   /**
-   * https://json-ld.org/spec/latest/json-ld/#iri-expansion-within-a-context
+   * @see [JSON-LD iri-expansion-within-a-context](https://w3c.github.io/json-ld-syntax/#iri-expansion-within-a-context)
    */
   [key: string]: TermDef | undefined;
 }
 
 /**
- * @see https://json-ld.org/spec/latest/json-ld/#dfn-value-objects
+ * @see [JSON-LD dfn-value-object](https://w3c.github.io/json-ld-syntax/#dfn-value-object)
  */
 export interface ValueObject {
   /**
    * Used to specify the data that is associated with a particular property in
    * the graph. Note that in **json-rql** a `@value` will never be a variable.
-   * @see https://json-ld.org/spec/latest/json-ld/#typed-values
+   * @see [JSON-LD typed-values](https://w3c.github.io/json-ld-syntax/#typed-values)
    */
   '@value': number | string | boolean;
   /**
    * Used to set the data type of the typed value.
-   * @see https://json-ld.org/spec/latest/json-ld/#typed-values
-   * @see https://json-ld.org/spec/latest/json-ld/#type-coercion
+   * @see [JSON-LD typed-values](https://w3c.github.io/json-ld-syntax/#typed-values)
+   * @see [JSON-LD type-coercion](https://w3c.github.io/json-ld-syntax/#type-coercion)
    */
   '@type'?: Iri;
   /**
@@ -179,7 +179,7 @@ export function isValueObject(value: SubjectPropertyObject): value is ValueObjec
 
 /**
  * A node object used to reference a node having only the `@id` key.
- * @see https://json-ld.org/spec/latest/json-ld/#dfn-node-references
+ * @see [JSON-LD dfn-node-reference](https://w3c.github.io/json-ld-syntax/#dfn-node-reference)
  */
 export type Reference = { '@id': Iri; };
 
@@ -190,19 +190,20 @@ export function isReference(value: SubjectPropertyObject): value is Reference {
 /**
  * A basic atomic value used as a concrete value or in a filter.
  */
-export type Atom = number | string | boolean | Variable | ValueObject;
+export type Atom = number | string | boolean | Variable | ValueObject | Reference;
 
 export function isAtom(value: SubjectPropertyObject): value is Atom {
   return typeof value == 'number'
     || typeof value == 'string'
     || typeof value == 'boolean'
-    || isValueObject(value);
+    || isValueObject(value)
+    || isReference(value);
 }
 
 /**
  * A value that can be assigned as the target of a graph edge.
  */
-export type Value = Atom | Subject | Reference;
+export type Value = Atom | Subject;
 
 /**
  * A stand-in for a Value used as a basis for filtering. An expression can be
@@ -211,7 +212,7 @@ export type Value = Atom | Subject | Reference;
  * 2. a literal in JSON's native data types, i.e., number, strings, and
  *    booleans,
  * 3. a [JSON-LD value
- *    object](https://json-ld.org/spec/latest/json-ld/#value-objects), or
+ *    object](https://w3c.github.io/json-ld-syntax/#value-objects), or
  * 4. a constraint of the form `{ <operator> : [<expression>...] }`.
  */
 export type Expression = Atom | Constraint;
@@ -224,18 +225,18 @@ export function isExpression(value: any): value is Expression {
  * An operator-based constraint of the form `{ <operator> : [<expression>...]
  * }`. The key is the operator, and the value is the array of arguments. If the
  * operator is unary, the expression need not be wrapped in an array.
- * @see https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#expressions
+ * @see [SPARQL expressions](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#expressions)
  */
 export interface Constraint {
   /**
    * Used only for aggregation operators
-   * @see https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#aggregates
+   * @see [SPARQL aggregates](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#aggregates)
    */
   '@distinct'?: boolean;
   /**
    * Operators are based on SPARQL expression keywords, lowercase with '@' prefix.
    * It's not practical to constrain the types further here, see #isConstraint
-   * @see https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#rConditionalOrExpression
+   * @see [SPARQL rConditionalOrExpression](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#rConditionalOrExpression)
    */
   [operator: string]: Expression | Expression[] | Group | '*' | null | boolean | undefined;
 }
@@ -262,7 +263,7 @@ export type SubjectPropertyObject = Value | Container | InlineFilter | SubjectPr
 
 /**
  * Used to express an ordered or unordered container of data.
- * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
+ * @see [JSON-LD sets-and-lists](https://w3c.github.io/json-ld-syntax/#sets-and-lists)
  */
 export type Container = List | Set;
 
@@ -273,7 +274,7 @@ export type Container = List | Set;
  * Note that this reification is only possible when using the `@list` keyword,
  * and not if the active context specifies `"@container": "@list"` for a
  * property, in which case the list itself is anonymous.
- * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
+ * @see [JSON-LD sets-and-lists](https://w3c.github.io/json-ld-syntax/#sets-and-lists)
  */
 export interface List extends Subject {
   '@list': SubjectPropertyObject;
@@ -286,7 +287,7 @@ export function isList(value: SubjectPropertyObject): value is List {
 /**
  * Used to express an unordered set of data and to ensure that values are always
  * represented as arrays.
- * @see https://json-ld.org/spec/latest/json-ld/#sets-and-lists
+ * @see [JSON-LD sets-and-lists](https://w3c.github.io/json-ld-syntax/#sets-and-lists)
  */
 export interface Set {
   '@set': SubjectPropertyObject;
@@ -316,16 +317,16 @@ export interface Subject extends Pattern {
   '@id'?: Iri | Variable | InlineFilter;
   /**
    * Used to set the data type of a node or typed value.
-   * @see https://json-ld.org/spec/latest/json-ld/#specifying-the-type
+   * @see [JSON-LD specifying-the-type](https://w3c.github.io/json-ld-syntax/#specifying-the-type)
    */
   '@type'?: Iri | Variable | Iri[] | Variable[] | InlineFilter;
   /**
    * Specifies a graph edge, that is, a mapping from the `@id` of this JSON
    * object to one or more values, which may also express constraints.
-   * @see https://json-ld.org/spec/latest/json-ld/#embedding
+   * @see [JSON-LD embedding](https://w3c.github.io/json-ld-syntax/#embedding)
    */
   [key: string]: SubjectPropertyObject | Context | undefined;
-  // TODO: @reverse https://json-ld.org/spec/latest/json-ld/#reverse-properties
+  // TODO: @reverse [JSON-LD reverse-properties](https://w3c.github.io/json-ld-syntax/#reverse-properties)
 }
 
 /**
@@ -349,43 +350,52 @@ export function isSubject(p: Pattern): p is Subject {
 export interface Group extends Pattern {
   /**
    * Specifies a Subject or an array of Subjects to match.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=graph&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=graph&type=Code)
    */
   '@graph'?: Subject | Subject[];
   /**
    * Specifies a filter or an array of filters, each of the form `{ <operator> :
    * [<expression>...] }`. Note that filters can also be specified in-line
    * inside a Subject.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=filter&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=filter&type=Code)
    */
   '@filter'?: Constraint | Constraint[];
   /**
    * Specifies an array of alternative patterns (Subject, Group or Query) to match.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=union&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=union&type=Code)
    */
   '@union'?: Pattern[];
   /**
    * Specifies a Group that may or may not match.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=optional&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=optional&type=Code)
    */
   '@optional'?: Group;
+  /**
+   * Specifies a Variable Expression or array of Variable Expressions that
+   * define [inline allowable value combinations] for this Group.
+   * @see [SPARQL inline-data](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#inline-data)
+   */
+  '@values'?: VariableExpression | VariableExpression[];
 }
 
 export function isGroup(p: Pattern): p is Group {
-  return '@graph' in p || '@filter' in p || '@union' in p || '@optional' in p;
+  return '@graph' in p || '@filter' in p || '@union' in p || '@optional' in p ||
+    ('@values' in p && !isQuery(p)); // Queries can also have @values
 }
 
 export interface Query extends Pattern {
   /**
    * specifies a pattern to match, or an array of patterns to match. Each can be
    * a Subject, a Group, or another Query (a sub-query).
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=where&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=where&type=Code)
    */
   '@where'?: Pattern[] | Pattern
   /**
    * Specifies a Variable Expression or array of Variable Expressions that
-   * define [inline allowable value combinations]
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=values&type=Code
+   * define [inline allowable value combinations]. This is a short-hand for
+   * including values in {@link Group}s in the `@where` clause.
+   * @see [SPARQL inline-data](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#inline-data)
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=values&type=Code)
    */
   '@values'?: VariableExpression | VariableExpression[];
 }
@@ -397,19 +407,19 @@ export function isQuery(p: Pattern): p is Query {
 export interface Read extends Query {
   /**
    * Specifies an expression or array of expressions to order the results by.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=orderBy&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=orderBy&type=Code)
    */
   '@orderBy'?: Expression | Expression[],
   /**
    * Specifies an expression or an array of expressions to [group the result
    * by](https://www.w3.org/TR/sparql11-query/#groupby).
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=groupBy&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=groupBy&type=Code)
    */
   '@groupBy'?: Expression | Expression[],
   /**
    * Specifies an expression to [filter individual grouped-by
    * members](https://www.w3.org/TR/sparql11-query/#having).
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=having&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=having&type=Code)
    */
   '@having'?: Expression,
   /**
@@ -487,9 +497,9 @@ export interface Describe extends Read {
    * Specifies a single Variable Expression or array of Variable Expressions.
    * Each matched datum for the identified variables will be output in some
    * suitable expanded format, such as an entity with its top-level properties.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=describe&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=describe&type=Code)
    */
-  '@describe': Iri | Iri[] | Variable | Variable[]
+  '@describe': Iri | Variable | (Iri | Variable)[]
 }
 
 export function isDescribe(p: Pattern): p is Describe {
@@ -500,7 +510,7 @@ export interface Construct extends Read {
   /**
    * Specifies a Subject for the requested data, using variables to place-hold
    * data matched by the `@where` clause.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=construct&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=construct&type=Code)
    */
   '@construct': Subject | Subject[]
 }
@@ -526,7 +536,7 @@ export interface Select extends Read {
   /**
    * Specifies a single Variable Expression or array of Variable Expressions.
    * The output will be a table of atomic values.
-   * @see examples https://github.com/gsvarovsky/json-rql/search?l=JSON&q=select&type=Code
+   * @see [examples](https://github.com/gsvarovsky/json-rql/search?l=JSON&q=select&type=Code)
    */
   '@select': Result
 }
