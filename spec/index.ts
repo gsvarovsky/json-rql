@@ -93,7 +93,7 @@ export interface Pattern {
  * a string is interpreted as a vocabulary item. Its value is either a string
  * (simple term definition), expanding to an absolute IRI, or an expanded term
  * definition.
- * @see [JSON-LD dfn-term-definition](https://w3c.github.io/json-ld-syntax/#dfn-term-definition)
+ * @see [JSON-LD&nbsp;dfn-term-definition](https://w3c.github.io/json-ld-syntax/#dfn-term-definition)
  */
 export type TermDef = Iri | ExpandedTermDef;
 
@@ -102,7 +102,7 @@ export type TermDef = Iri | ExpandedTermDef;
  * object containing one or more keyword properties to define the associated
  * absolute IRI, if this is a reverse property, the type associated with string
  * values, and a container mapping.
- * @see [JSON-LD dfn-expanded-term-definition](https://w3c.github.io/json-ld-syntax/#dfn-expanded-term-definition)
+ * @see [JSON-LD&nbsp;dfn-expanded-term-definition](https://w3c.github.io/json-ld-syntax/#dfn-expanded-term-definition)
  */
 export interface ExpandedTermDef {
   '@id'?: Iri;
@@ -140,11 +140,11 @@ export interface Context {
   '@vocab'?: Iri;
   /**
    * Defines a default language for a JSON-LD document
-   * @see [JSON-LD string-internationalization](https://w3c.github.io/json-ld-syntax/#string-internationalization)
+   * @see [JSON-LD&nbsp;string-internationalization](https://w3c.github.io/json-ld-syntax/#string-internationalization)
    */
   '@language'?: string;
   /**
-   * @see [JSON-LD iri-expansion-within-a-context](https://w3c.github.io/json-ld-syntax/#iri-expansion-within-a-context)
+   * @see [JSON-LD&nbsp;iri-expansion-within-a-context](https://w3c.github.io/json-ld-syntax/#iri-expansion-within-a-context)
    */
   [key: string]: TermDef | undefined;
 }
@@ -179,7 +179,7 @@ export function isValueObject(value: SubjectPropertyObject): value is ValueObjec
 
 /**
  * A node object used to reference a node having only the `@id` key.
- * @see [JSON-LD dfn-node-reference](https://w3c.github.io/json-ld-syntax/#dfn-node-reference)
+ * @see [JSON-LD&nbsp;dfn-node-reference](https://w3c.github.io/json-ld-syntax/#dfn-node-reference)
  */
 export type Reference = { '@id': Iri; };
 
@@ -188,16 +188,30 @@ export function isReference(value: SubjectPropertyObject): value is Reference {
 }
 
 /**
+ * Like a {@link Reference}, but used for "vocabulary" references. These are relevant to:
+ * - Subject properties: the property name is a vocabulary reference
+ * - Subject `@type`: the type value is a vocabulary reference
+ * - Any value for a property that has been defined as `@vocab` in the Context
+ * @see [JSON-LD&nbsp;Default&nbsp;Vocabulary](https://www.w3.org/TR/json-ld/#default-vocabulary)
+ */
+export type VocabReference = { '@vocab': Iri };
+
+export function isVocabReference(value: SubjectPropertyObject): value is VocabReference {
+  return typeof value == 'object' && Object.keys(value).every(k => k === '@vocab');
+}
+
+/**
  * A basic atomic value used as a concrete value or in a filter.
  */
-export type Atom = number | string | boolean | Variable | ValueObject | Reference;
+export type Atom = number | string | boolean | Variable | ValueObject | Reference | VocabReference;
 
 export function isAtom(value: SubjectPropertyObject): value is Atom {
   return typeof value == 'number'
     || typeof value == 'string'
     || typeof value == 'boolean'
     || isValueObject(value)
-    || isReference(value);
+    || isReference(value)
+    || isVocabReference(value);
 }
 
 /**
@@ -207,12 +221,9 @@ export type Value = Atom | Subject;
 
 /**
  * A stand-in for a Value used as a basis for filtering. An expression can be
- * 1. a [variable](https://www.w3.org/TR/sparql11-query/#QSynVariables) like
- *    `"?variable"`,
- * 2. a literal in JSON's native data types, i.e., number, strings, and
- *    booleans,
- * 3. a [JSON-LD value
- *    object](https://w3c.github.io/json-ld-syntax/#value-objects), or
+ * 1. a [variable](https://www.w3.org/TR/sparql11-query/#QSynVariables) like `"?variable"`,
+ * 2. a literal in JSON's native data types, i.e., number, strings, and booleans,
+ * 3. a [JSON-LD value object](https://w3c.github.io/json-ld-syntax/#value-objects), or
  * 4. a constraint of the form `{ <operator> : [<expression>...] }`.
  */
 export type Expression = Atom | Constraint;
@@ -236,7 +247,7 @@ export interface Constraint {
   /**
    * Operators are based on SPARQL expression keywords, lowercase with '@' prefix.
    * It's not practical to constrain the types further here, see #isConstraint
-   * @see [SPARQL rConditionalOrExpression](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#rConditionalOrExpression)
+   * @see [SPARQL&nbsp;rConditionalOrExpression](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#rConditionalOrExpression)
    */
   [operator: string]: Expression | Expression[] | Group | '*' | null | boolean | undefined;
 }
@@ -485,7 +496,7 @@ export function isWritable(p: Pattern, quick?: 'quick'): p is Subject | Group | 
  */
 export interface VariableExpression {
   [key: string]: Expression;
-};
+}
 
 export function isVariableExpression(value: any): value is VariableExpression {
   const keys = typeof value == 'object' ? Object.keys(value) : [];
@@ -546,8 +557,14 @@ export function isSelect(p: Pattern): p is Select {
 }
 
 export interface Update extends Query {
-  '@insert': Subject | Subject[];
+  /**
+   * Subjects with properties to be deleted from the domain.
+   */
   '@delete': Subject | Subject[];
+  /**
+   * Subjects with properties to be inserted into the domain.
+   */
+  '@insert': Subject | Subject[];
 }
 
 export function isUpdate(p: Pattern): p is Update {
