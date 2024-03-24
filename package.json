@@ -1,6 +1,6 @@
 {
   "name": "json-rql",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "JSON RDF Query Language: a JSON-LD based SPARQL serialisation",
   "main": "spec/index.js",
   "types": "spec/index.d.ts",
@@ -52,7 +52,7 @@
     "npm-run-all": "^4.1.5",
     "object-hash": "^2.1.1",
     "typedoc": "^0.19.2",
-    "typescript": "4.1",
+    "typescript": "^4.1.6",
     "typescript-json-schema": "^0.45.1"
   },
   "runkitExampleFilename": "sparql/example.js"
